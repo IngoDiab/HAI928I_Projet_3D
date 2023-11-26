@@ -3,21 +3,39 @@ TARGET = myProject
 DEPENDPATH += .
 INCLUDEPATH += .
 INCLUDEPATH += ./src
-QT += opengl xml core gui
+QT += opengl xml core gui widgets
 CONFIG += qt
 MOC_DIR = ./tmp/moc
 OBJECTS_DIR = ./tmp/obj
 
 # Input
-HEADERS += ./src/point3.h \
-    ./src/Mesh.h \
-    ./src/MyViewer.h \
+HEADERS += ./src/Mesh/Mesh.h \
+    ./src/others/MyViewer.h \
     ./src/gl/GLUtilityMethods.h \
-    ./src/gl/BasicColors.h
+    ./src/gl/BasicColors.h \
+    src/Mesh/Cube/Cube.h \
+    src/Transform/Transform.h \
+    src/Fluid/Fluid.h \
+    src/Particle/Particle.h \
+    src/Mesh/MyMesh.h \
+    src/Mesh/Sphere/Sphere.h \
+    src/ShaderProgram/ShaderProgram.h \
+    src/VBO/VBO.h
+
 SOURCES += ./src/main.cpp \
     ./src/gl/GLUtilityMethods.cpp\
-    ./src/gl/BasicColors.cpp
+    ./src/gl/BasicColors.cpp \
+    src/Mesh/Cube/Cube.cpp \
+    src/Transform/Transform.cpp \
+    src/Fluid/Fluid.cpp \
+    src/Particle/Particle.cpp \
+    src/Mesh/MyMesh.cpp \
+    src/Mesh/Sphere/Sphere.cpp \
+    src/ShaderProgram/ShaderProgram.cpp \
+    src/VBO/VBO.cpp
 
+RESOURCES += \
+    shaders.qrc
 
 
 EXT_DIR = ../extern

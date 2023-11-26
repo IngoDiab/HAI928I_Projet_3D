@@ -2,10 +2,9 @@
 #include <QApplication>
 #include <QMainWindow>
 #include <QToolBar>
-#include "MyViewer.h"
+#include "others/MyViewer.h"
 
-#include<QDebug>
-
+#include <QGLFunctions>
 int main( int argc , char** argv )
 {
     QApplication app( argc , argv );
@@ -13,6 +12,7 @@ int main( int argc , char** argv )
     MyViewer * viewer = new MyViewer;
 
     QMainWindow * mainWindow = new QMainWindow;
+
     QToolBar * toolBar = new QToolBar;
     toolBar->setIconSize(QSize(35,35));
     toolBar->setAutoFillBackground(true);
