@@ -43,8 +43,8 @@ class MyViewer : public QGLViewer, protected QOpenGLExtraFunctions
 {
     Q_OBJECT
 
-    //MyMesh* mesh = nullptr;
     Fluid* mFluid = nullptr;
+    unsigned long mNbParticles = 5;
 
     QWidget * controls;
 
@@ -159,7 +159,7 @@ public :
         setSceneRadius( 10.f );
         showEntireScene();
 
-        mFluid = new Fluid(5);
+        mFluid = new Fluid(mNbParticles);
     }
 
     QString helpString() const {

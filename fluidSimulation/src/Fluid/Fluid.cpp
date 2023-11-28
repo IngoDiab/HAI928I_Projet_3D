@@ -6,21 +6,27 @@
 
 Fluid::Fluid(unsigned long _nbParticles)
 {
+    mParticleTemplateDisplay = new Particle();
+
     mParticlesBuffer.SetUsagePattern(QOpenGLBuffer::DynamicDraw);
 
     mNbParticles = _nbParticles;
-    mParticles = QVector<Particle>(_nbParticles);
+    //mParticles = QVector<Particle>(_nbParticles);
+    mParticleComputableData = QVector<ParticleComputableData>(_nbParticles);
     srand(time(NULL));
-    for(Particle& _particle : mParticles)
+    for(ParticleComputableData& _particleData : mParticleComputableData)
     {
         float _x = rand()/(float)RAND_MAX *5. -2.5;
         float _y = rand()/(float)RAND_MAX *5. -2.5;
         float _z = rand()/(float)RAND_MAX *5. -2.5;
-        QVector3D _randomPosition = QVector3D(_x, _y, _z);
+        //QVector3D _randomPosition = QVector3D(_x, _y, _z);
 
 
-        _particle.GetTransform().SetWorldPosition(QVector3D(_randomPosition));
-        _particle.GetTransform().SetWorldScale(QVector3D(mScaleParticle,mScaleParticle,mScaleParticle));
+//        _particle.GetTransform().SetWorldPositimScaleParticleon(QVector3D(_randomPosition));
+//        _particle.GetTransform().SetWorldScale(QVector3D(mScaleParticle,mScaleParticle,mScaleParticle));
+        _particleData.mPositionX = _x;
+        _particleData.mPositionY = _y;
+        _particleData.mPositionZ = _z;
     }
     ComputeCenter();
 
@@ -37,13 +43,6 @@ void Fluid::ProcessFluid()
 {
     if(!mComputeShader || mComputeShader->GetType() != SHADER_TYPE::COMPUTING) return;
 
-    //Get computables data
-    unsigned long _nbParticles = mParticles.size();
-    mParticleComputableData.clear();
-    mParticleComputableData.resize(_nbParticles);
-    for(unsigned long i = 0; i < _nbParticles; ++i)
-        mParticleComputableData[i] = mParticles[i].GetComputableData();
-
     //Use compute shader
     mComputeShader->BindProgram();
 
@@ -52,22 +51,18 @@ void Fluid::ProcessFluid()
     mParticlesBuffer.BindBase(0);
 
     //Use compute
-    qDebug() << "0 " <<mParticleComputableData[0].mPosition;
-    qDebug() << "1 " <<mParticleComputableData[1].mPosition;
-    qDebug() << "2 " <<mParticleComputableData[2].mPosition;
-    qDebug() << "3 " <<mParticleComputableData[3].mPosition;
-    qDebug() << "4 " <<mParticleComputableData[4].mPosition;
-    ParticleComputableData* _processedData = mComputeShader->ProcessComputeShader<ParticleComputableData>(5,1,1, mParticlesBuffer);
+    ParticleComputableData* _processedData = mComputeShader->ProcessComputeShader<ParticleComputableData>(10000,1,1, mParticlesBuffer);
     mComputeShader->UnbindProgram();
 
     //Get back data on particles
+    unsigned long _nbParticles = mParticleComputableData.size();
     for(unsigned long i = 0; i < _nbParticles; ++i)
-        mParticles[i].RefreshComputableData(_processedData[i]);
+        mParticleComputableData[i] = _processedData[i];
 }
 
 void Fluid::RenderFluid(const GLfloat* _projectionMatrix, const GLfloat* _viewMatrix) const
 {
-    if (!mDisplayParticles) return;
+    if (!mDisplayParticles || !mParticleTemplateDisplay) return;
 
     //Shader
     mRenderShader->BindProgram();
@@ -75,14 +70,17 @@ void Fluid::RenderFluid(const GLfloat* _projectionMatrix, const GLfloat* _viewMa
     //View Projection matrix
     mRenderShader->SendVP(_viewMatrix, _projectionMatrix);
 
-    for(const Particle& _particle : mParticles)
+    for(const ParticleComputableData& _particleData : mParticleComputableData)
     {
+        mParticleTemplateDisplay->GetTransform().SetWorldPosition(QVector3D(_particleData.mPositionX, _particleData.mPositionY, _particleData.mPositionZ));
+        mParticleTemplateDisplay->SetVelocity(QVector3D(_particleData.mVelocityX, _particleData.mVelocityY, _particleData.mVelocityZ));
+
         //Model matrix
-        GLfloat* _modelMatrixF = _particle.GetTransform().GetModelMatrix().data();
+        GLfloat* _modelMatrixF = mParticleTemplateDisplay->GetTransform().GetModelMatrix().data();
         mRenderShader->SendM(_modelMatrixF);
 
         //Draw
-        MyMesh* _mesh = _particle.GetMesh();
+        MyMesh* _mesh = mParticleTemplateDisplay->GetMesh();
         if(!_mesh) return;
         _mesh->DrawMesh();
     }
@@ -98,7 +96,7 @@ void Fluid::ComputeCenter()
 {
     //mCenter = mParticles[0].GetTransform().GetWorldPosition();
     mCenter = QVector3D(0,0,0);
-    for(const Particle& _particle : mParticles)
-        mCenter += _particle.GetTransform().GetWorldPosition();
-    mCenter /= (float)mParticles.size();
+    for(const ParticleComputableData& _particleData : mParticleComputableData)
+        mCenter += QVector3D(_particleData.mPositionX, _particleData.mPositionY, _particleData.mPositionZ);
+    mCenter /= (float)mParticleComputableData.size();
 }

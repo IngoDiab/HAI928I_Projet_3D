@@ -27,6 +27,6 @@ ParticleComputableData Particle::GetComputableData() const
 
 void Particle::RefreshComputableData(const ParticleComputableData& _processedComputableData)
 {
-    mVelocity = _processedComputableData.mVelocity;
-    mTransform.SetWorldPosition(_processedComputableData.mPosition);
+    mVelocity = QVector3D(_processedComputableData.mVelocityX, _processedComputableData.mVelocityY, _processedComputableData.mVelocityZ);
+    mTransform.SetWorldPosition(QVector3D(_processedComputableData.mPositionX, _processedComputableData.mPositionY, _processedComputableData.mPositionZ));
 }

@@ -10,14 +10,14 @@ class QGLViewer;
 class Fluid
 {
     //Particles
-    unsigned long mNbParticles = 2;
-    float mScaleParticle = 1;
-    QVector<Particle> mParticles;
+    unsigned long mNbParticles = 0;
     QVector<ParticleComputableData> mParticleComputableData;
 
     //Display
     ShaderProgram* mRenderShader = nullptr;
+    Particle* mParticleTemplateDisplay = nullptr;
     bool mDisplayParticles = true;
+    float mScaleParticle = 1;
     QVector3D mCenter = QVector3D();
 
     //Compute

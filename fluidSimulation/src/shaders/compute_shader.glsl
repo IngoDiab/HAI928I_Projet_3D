@@ -4,20 +4,36 @@ layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
 struct ParticleData
 {
-    vec3 velocity;
-    vec3 position;
+    float velocityX;
+    float velocityY;
+    float velocityZ;
+
+    float positionX;
+    float positionY;
+    float positionZ;
 };
 
 layout(std430, binding = 0) buffer ParticleBuffer
 {
-    ParticleData particles[5];
+    ParticleData particles[];
 };
 
-uniform float deltaTime = 0.01; // Ajustez selon vos besoins
+uniform float deltaTime = 0.001;
 
-void main() {
+void ApplyGravity()
+{
     uint index = gl_GlobalInvocationID.x;
-    vec3 gravity = vec3(0.0, -9.8, 0.0);
-    particles[index].velocity += gravity * deltaTime;
-    particles[index].position += particles[index].velocity * deltaTime;
+    particles[index].velocityY -= 9.8 * deltaTime;
+    particles[index].positionY += particles[index].velocityY * deltaTime;
+}
+
+void FindBoundariesOctree()
+{
+
+}
+
+void main()
+{
+    FindBoundariesOctree();
+    ApplyGravity();
 }
