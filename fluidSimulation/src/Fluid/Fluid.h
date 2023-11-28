@@ -1,31 +1,35 @@
 #ifndef FLUID_H
 #define FLUID_H
 
-#include <vector>
-using namespace std;
-
 #include "../Particle/Particle.h"
+#include "../Buffer/Buffer.h"
 #include "../ShaderProgram/ShaderProgram.h"
 
 class QGLViewer;
 
 class Fluid
 {
-    QVector3D mCenter = QVector3D();
-
+    //Particles
     unsigned long mNbParticles = 2;
-    float mScaleParticle = 0.1;
-    vector<Particle> mParticles;
+    float mScaleParticle = 1;
+    QVector<Particle> mParticles;
+    QVector<ParticleComputableData> mParticleComputableData;
 
     //Display
-    ShaderProgram* mShader = nullptr;
+    ShaderProgram* mRenderShader = nullptr;
     bool mDisplayParticles = true;
+    QVector3D mCenter = QVector3D();
+
+    //Compute
+    ShaderProgram* mComputeShader = nullptr;
+    OGL_Buffer mParticlesBuffer = OGL_Buffer(QOpenGLBuffer::VertexBuffer);
 
 public:
     Fluid(unsigned long _nbParticles);
     ~Fluid();
 
 public:
+    void ProcessFluid();
     void RenderFluid(const GLfloat* _projectionMatrix, const GLfloat* _viewMatrix) const;
     QVector3D Center() const {return mCenter;}
 

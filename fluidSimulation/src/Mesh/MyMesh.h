@@ -7,7 +7,7 @@
 using namespace std;
 
 #include <QVector3D>
-#include "../VBO/VBO.h"
+#include "../Buffer/Buffer.h"
 
 enum class VERTEX_ATTRIBUTE
 {
@@ -38,16 +38,16 @@ friend class MyViewer;
 
 protected:
     QVector<QVector3D> mPositions = QVector<QVector3D>();
-    VBO mPositionVBO = VBO(GL_ARRAY_BUFFER);
+    OGL_Buffer mPositionVBO = OGL_Buffer(QOpenGLBuffer::VertexBuffer);
 
 //    vector<point2d> mUVs = vector<vec2>();
 //    VBO mUVsVBO = VBO(GL_ARRAY_BUFFER);
 
     QVector<QVector3D> mNormales = QVector<QVector3D>();
-    VBO mNormalVBO = VBO(GL_ARRAY_BUFFER);
+    OGL_Buffer mNormalVBO = OGL_Buffer(QOpenGLBuffer::VertexBuffer);
 
     QVector<unsigned int> mIndices = QVector<unsigned int>();
-    VBO mIndicesVBO = VBO(GL_ELEMENT_ARRAY_BUFFER);
+    OGL_Buffer mIndicesVBO = OGL_Buffer(QOpenGLBuffer::IndexBuffer);
 
     QVector<Triangle> mTriangles;
 
@@ -55,7 +55,7 @@ public:
     QVector<QVector3D> GetPositionsVertices() const {return mPositions;}
     QVector<QVector3D> GetNormalesVertices() const {return mNormales;}
     QVector<unsigned int> GetIndices() const {return mIndices;}
-    void SetPositionsVertices(const QVector<QVector3D>& _positions) {mPositions = _positions; RefreshVBOData(VERTEX_ATTRIBUTE::VERTEX_POSITION);}
+    void SetPositionsVertices(const QVector<QVector3D>& _positions) {mPositions = _positions; RefreshBufferData(VERTEX_ATTRIBUTE::VERTEX_POSITION);}
 
 public:
     MyMesh();
@@ -63,7 +63,7 @@ public:
     MyMesh(const QVector<QVector3D>& _positions, /*const vector<vec2>& _uvs,*/ const QVector<unsigned int>& _indices, const QVector<Triangle>& _triangles);
 
 protected:
-    void RefreshVBOData(const VERTEX_ATTRIBUTE _vbo);
+    void RefreshBufferData(const VERTEX_ATTRIBUTE _vbo);
 
     void ClearMeshBuffers();
     virtual void CreateVerticesPositions();

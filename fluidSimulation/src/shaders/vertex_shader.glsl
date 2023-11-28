@@ -14,6 +14,6 @@ void main()
     gl_Position =  projection_matrix * view_matrix * model_matrix * vec4(vertexPosition,1);
 
     vec4 normaleV4 = normalize(transpose(inverse(model_matrix)) * vec4(vertexNormal, 1.0));
-    normale = normaleV4.xyz;
+    normale = vertexPosition.xyz;
 }
 

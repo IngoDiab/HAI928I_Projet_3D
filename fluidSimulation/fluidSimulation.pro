@@ -20,7 +20,7 @@ HEADERS += ./src/Mesh/Mesh.h \
     src/Mesh/MyMesh.h \
     src/Mesh/Sphere/Sphere.h \
     src/ShaderProgram/ShaderProgram.h \
-    src/VBO/VBO.h
+    src/Buffer/Buffer.h
 
 SOURCES += ./src/main.cpp \
     ./src/gl/GLUtilityMethods.cpp\
@@ -32,7 +32,7 @@ SOURCES += ./src/main.cpp \
     src/Mesh/MyMesh.cpp \
     src/Mesh/Sphere/Sphere.cpp \
     src/ShaderProgram/ShaderProgram.cpp \
-    src/VBO/VBO.cpp
+    src/Buffer/Buffer.cpp
 
 RESOURCES += \
     shaders.qrc

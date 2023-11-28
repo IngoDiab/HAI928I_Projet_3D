@@ -36,26 +36,26 @@ void Cube::CreateCube(const bool _generatePos, const bool _generateUV, const boo
     {
         if(_generateUV) CreateVerticesPositions();
         else CreateVerticesPositionsPacked();
-        RefreshVBOData(VERTEX_ATTRIBUTE::VERTEX_POSITION);
+        RefreshBufferData(VERTEX_ATTRIBUTE::VERTEX_POSITION);
     }
 
     if(_generateUV)
     {
         CreateVerticesUVs();
-        RefreshVBOData(VERTEX_ATTRIBUTE::VERTEX_UVS);
+        RefreshBufferData(VERTEX_ATTRIBUTE::VERTEX_UVS);
     }
 
     if(_generateIndices)
     {
         if(_generateUV) CreateIndices();
         else CreateIndicesPacked();
-        RefreshVBOData(VERTEX_ATTRIBUTE::VERTEX_INDICES);
+        RefreshBufferData(VERTEX_ATTRIBUTE::VERTEX_INDICES);
     }
 
     if(_generateNormales)
     {
         CreateVerticesNormales();
-        RefreshVBOData(VERTEX_ATTRIBUTE::VERTEX_NORMALE);
+        RefreshBufferData(VERTEX_ATTRIBUTE::VERTEX_NORMALE);
     }
 }
 

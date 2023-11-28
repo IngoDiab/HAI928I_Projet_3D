@@ -16,30 +16,30 @@ MyMesh::~MyMesh()
 
 MyMesh::MyMesh(const QVector<QVector3D>& _positions, /*const vector<vec2>& _uvs,*/ const QVector<unsigned int>& _indices, const QVector<Triangle>& _triangles) : mPositions(_positions),/* mUVs(_uvs),*/ mIndices(_indices), mTriangles(_triangles)
 {
-    RefreshVBOData(VERTEX_ATTRIBUTE::VERTEX_POSITION);
-    //RefreshVBOData(VERTEX_ATTRIBUTE::VERTEX_UVS);
-    RefreshVBOData(VERTEX_ATTRIBUTE::VERTEX_NORMALE);
-    RefreshVBOData(VERTEX_ATTRIBUTE::VERTEX_INDICES);
+    RefreshBufferData(VERTEX_ATTRIBUTE::VERTEX_POSITION);
+    //RefreshBufferData(VERTEX_ATTRIBUTE::VERTEX_UVS);
+    RefreshBufferData(VERTEX_ATTRIBUTE::VERTEX_NORMALE);
+    RefreshBufferData(VERTEX_ATTRIBUTE::VERTEX_INDICES);
 }
 
-void MyMesh::RefreshVBOData(const VERTEX_ATTRIBUTE _vbo)
+void MyMesh::RefreshBufferData(const VERTEX_ATTRIBUTE _vbo)
 {
     switch (_vbo)
     {
     case VERTEX_ATTRIBUTE::VERTEX_POSITION:
-        mPositionVBO.CopyDataToVBO(mPositions);
+        mPositionVBO.CopyDataToBuffer(mPositions);
         break;
 
 //    case VERTEX_ATTRIBUTE::VERTEX_UVS:
-//        mUVsVBO.CopyDataToVBO(mUVs);
+//        mUVsVBO.CopyDataToBuffer(mUVs);
 //        break;
 
     case VERTEX_ATTRIBUTE::VERTEX_NORMALE:
-        mNormalVBO.CopyDataToVBO(mNormales);
+        mNormalVBO.CopyDataToBuffer(mNormales);
         break;
 
     case VERTEX_ATTRIBUTE::VERTEX_INDICES:
-        mIndicesVBO.CopyDataToVBO(mIndices);
+        mIndicesVBO.CopyDataToBuffer(mIndices);
         break;
 
     default:
@@ -78,8 +78,8 @@ void MyMesh::CreateVerticesNormales()
 
 void MyMesh::DrawMesh()
 {
-    mPositionVBO.DrawVBO(0, 3, GL_FLOAT);
-    //mUVsVBO.DrawVBO(1, 2, GL_FLOAT);
-    mNormalVBO.DrawVBO(1, 3, GL_FLOAT);
-    mIndicesVBO.DrawVBOIndices(GL_TRIANGLES, mIndices.size());
+    mPositionVBO.DrawBuffer(0, 3, GL_FLOAT);
+    //mUVsVBO.DrawBuffer(1, 2, GL_FLOAT);
+    mNormalVBO.DrawBuffer(1, 3, GL_FLOAT);
+    mIndicesVBO.DrawBufferIndices(GL_TRIANGLES, mIndices.size());
 }

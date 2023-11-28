@@ -2,7 +2,7 @@
 #include <QFile>
 #include <QDebug>
 
-#include <QOpenGLFunctions>
+#include <QOpenGLExtraFunctions>
 
 ShaderProgram::ShaderProgram()
 {
@@ -11,6 +11,7 @@ ShaderProgram::ShaderProgram()
 
 ShaderProgram::ShaderProgram(const QString& _vPath, const QString& _fPath)
 {
+    mType = SHADER_TYPE::RENDERING;
     BindProgram();
     AddShader(_vPath, QOpenGLShader::Vertex);
     AddShader(_fPath, QOpenGLShader::Fragment);
@@ -19,16 +20,26 @@ ShaderProgram::ShaderProgram(const QString& _vPath, const QString& _fPath)
     GetLocation(mModelMatrixLocation, "model_matrix");
     GetLocation(mViewMatrixLocation, "view_matrix");
     GetLocation(mProjectionMatrixLocation, "projection_matrix");
-
-    qDebug() << "mModelMatrixLocation "<< mModelMatrixLocation;
-    qDebug() << "mViewMatrixLocation "<< mViewMatrixLocation;
-    qDebug() << "mProjectionMatrixLocation "<< mProjectionMatrixLocation;
-
 }
+
+ShaderProgram::ShaderProgram(const QString& _cPath)
+{
+    mType = SHADER_TYPE::COMPUTING;
+    BindProgram();
+    AddShader(_cPath, QOpenGLShader::Compute);
+    LinkShaders();
+}
+
+
 
 void ShaderProgram::BindProgram()
 {
     mProgram.bind();
+}
+
+void ShaderProgram::UnbindProgram()
+{
+    mProgram.release();
 }
 
 void ShaderProgram::AddShader(const QString& _path, const QOpenGLShader::ShaderTypeBit& _type)
@@ -63,37 +74,26 @@ void ShaderProgram::LinkShaders()
 void ShaderProgram::SendMVP(const GLfloat* _modelMatrix, const GLfloat* _viewMatrix, const GLfloat* _projectionMatrix)
 {
     BindProgram();
-    QOpenGLFunctions* _functions = QOpenGLContext::currentContext()->functions();
-    if (!_functions) return;
-    _functions->glUniformMatrix4fv(mModelMatrixLocation, 1, GL_FALSE, &_modelMatrix[0]);
-    _functions->glUniformMatrix4fv(mViewMatrixLocation, 1, GL_FALSE, &_viewMatrix[0]);
-    _functions->glUniformMatrix4fv(mProjectionMatrixLocation, 1, GL_FALSE, &_projectionMatrix[0]);
-
-    //mProgram.setUniformValue(mModelMatrixLocation, _modelMatrix);
-    //mProgram.setUniformValue(mViewMatrixLocation,_viewMatrix);
-    //mProgram.setUniformValue(mProjectionMatrixLocation, _projectionMatrix);
+    QOpenGLExtraFunctions _functions = QOpenGLExtraFunctions(QOpenGLContext::currentContext());
+    _functions.glUniformMatrix4fv(mModelMatrixLocation, 1, GL_FALSE, &_modelMatrix[0]);
+    _functions.glUniformMatrix4fv(mViewMatrixLocation, 1, GL_FALSE, &_viewMatrix[0]);
+    _functions.glUniformMatrix4fv(mProjectionMatrixLocation, 1, GL_FALSE, &_projectionMatrix[0]);
 }
 
 void ShaderProgram::SendM(const GLfloat* _modelMatrix)
 {
     BindProgram();
-    QOpenGLFunctions* _functions = QOpenGLContext::currentContext()->functions();
-    if (!_functions) return;
-    _functions->glUniformMatrix4fv(mModelMatrixLocation, 1, GL_FALSE, &_modelMatrix[0]);
-    //mProgram.setUniformValue(mModelMatrixLocation, _modelMatrix);
+    QOpenGLExtraFunctions _functions = QOpenGLExtraFunctions(QOpenGLContext::currentContext());
+    _functions.glUniformMatrix4fv(mModelMatrixLocation, 1, GL_FALSE, &_modelMatrix[0]);
 }
 
 void ShaderProgram::SendVP(const GLfloat* _viewMatrix, const GLfloat* _projectionMatrix)
 {
     BindProgram();
-    QOpenGLFunctions* _functions = QOpenGLContext::currentContext()->functions();
-    if (!_functions) return;
-    _functions->glUniformMatrix4fv(mViewMatrixLocation, 1, GL_FALSE, &_viewMatrix[0]);
-    _functions->glUniformMatrix4fv(mProjectionMatrixLocation, 1, GL_FALSE, &_projectionMatrix[0]);
-//    mProgram.setUniformValue(mViewMatrixLocation,_viewMatrix);
-//    mProgram.setUniformValue(mProjectionMatrixLocation, _projectionMatrix);
+    QOpenGLExtraFunctions _functions = QOpenGLExtraFunctions(QOpenGLContext::currentContext());
+    _functions.glUniformMatrix4fv(mViewMatrixLocation, 1, GL_FALSE, &_viewMatrix[0]);
+    _functions.glUniformMatrix4fv(mProjectionMatrixLocation, 1, GL_FALSE, &_projectionMatrix[0]);
 }
-
 
 void ShaderProgram::GetLocation(int& _location, string _name)
 {

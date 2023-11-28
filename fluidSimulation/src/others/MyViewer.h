@@ -31,7 +31,7 @@
 #include <QGLFunctions>
 
 #include <QOpenGLWidget>
-#include <QOpenGLFunctions>
+#include <QOpenGLExtraFunctions>
 #include <QOpenGLVertexArrayObject>
 using namespace std;
 
@@ -39,7 +39,7 @@ using namespace std;
 
 #include "../Fluid/Fluid.h"
 
-class MyViewer : public QGLViewer, protected QOpenGLFunctions
+class MyViewer : public QGLViewer, protected QOpenGLExtraFunctions
 {
     Q_OBJECT
 
@@ -87,9 +87,6 @@ public :
         //ProjectionMatrix
         GLfloat _projectionMatrixF[16];
         _camera->getProjectionMatrix(_projectionMatrixF);
-        //QMatrix4x4 _projectionMatrix(_projectionMatrixF);
-        //_projectionMatrix.setToIdentity();
-        //_projectionMatrix.perspective(45. * M_PI / 180., 16./9., 0.0001, 1000.);
 
         //ViewMatrix
         QMatrix4x4 _viewMatrix;
@@ -99,7 +96,13 @@ public :
         _viewMatrix.lookAt(_cameraPosition, mFluid->Center(), _cameraUp);
         GLfloat* _viewMatrixF = _viewMatrix.data();
 
-        if (mFluid) mFluid->RenderFluid(_projectionMatrixF, _viewMatrixF);
+        if (mFluid)
+        {
+            mFluid->ProcessFluid();
+            mFluid->RenderFluid(_projectionMatrixF, _viewMatrixF);
+        }
+
+        update();
     }
 
     void pickBackgroundColor() {
@@ -156,7 +159,7 @@ public :
         setSceneRadius( 10.f );
         showEntireScene();
 
-        mFluid = new Fluid(1);
+        mFluid = new Fluid(5);
     }
 
     QString helpString() const {

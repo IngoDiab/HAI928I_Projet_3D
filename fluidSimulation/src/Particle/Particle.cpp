@@ -18,3 +18,15 @@ Particle::~Particle()
 {
     delete mMesh;
 }
+
+ParticleComputableData Particle::GetComputableData() const
+{
+    QVector3D _position = mTransform.GetWorldPosition();
+    return ParticleComputableData(_position, mVelocity);
+}
+
+void Particle::RefreshComputableData(const ParticleComputableData& _processedComputableData)
+{
+    mVelocity = _processedComputableData.mVelocity;
+    mTransform.SetWorldPosition(_processedComputableData.mPosition);
+}

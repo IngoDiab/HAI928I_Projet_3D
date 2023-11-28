@@ -22,7 +22,7 @@ void Sphere::CreateSphere(const bool _generatePos, const bool _generateUV, const
     if(_generatePos)
     {
         CreateVerticesPositions();
-        RefreshVBOData(VERTEX_ATTRIBUTE::VERTEX_POSITION);
+        RefreshBufferData(VERTEX_ATTRIBUTE::VERTEX_POSITION);
     }
 
 //    if(_generateUV)
@@ -34,13 +34,13 @@ void Sphere::CreateSphere(const bool _generatePos, const bool _generateUV, const
     if(_generateIndices)
     {
         CreateIndices();
-        RefreshVBOData(VERTEX_ATTRIBUTE::VERTEX_INDICES);
+        RefreshBufferData(VERTEX_ATTRIBUTE::VERTEX_INDICES);
     }
 
     if(_generateNormales)
     {
         CreateVerticesNormales();
-        RefreshVBOData(VERTEX_ATTRIBUTE::VERTEX_NORMALE);
+        RefreshBufferData(VERTEX_ATTRIBUTE::VERTEX_NORMALE);
     }
 }
 
