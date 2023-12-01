@@ -4,13 +4,14 @@
 #include "../Particle/Particle.h"
 #include "../Buffer/Buffer.h"
 #include "../ShaderProgram/ShaderProgram.h"
+#include "../Grid/Grid.h"
 
 class QGLViewer;
 
 class Fluid
 {
     //Particles
-    unsigned long mNbParticles = 0;
+    unsigned int mNbParticles = 0;
     QVector<ParticleComputableData> mParticleComputableData;
 
     //Display
@@ -20,18 +21,24 @@ class Fluid
     float mScaleParticle = 1;
     QVector3D mCenter = QVector3D();
 
-    //Compute
-    ShaderProgram* mComputeShader = nullptr;
+    //Compute Fluid
+    ShaderProgram* mComputeShaderForces = nullptr;
     OGL_Buffer mParticlesBuffer = OGL_Buffer(QOpenGLBuffer::VertexBuffer);
 
+    //Compute Grid
+    Grid* mGrid = nullptr;
+    ShaderProgram* mComputeShaderGrid = nullptr;
+    OGL_Buffer mVoxelsBuffer = OGL_Buffer(QOpenGLBuffer::VertexBuffer);
+
 public:
-    Fluid(unsigned long _nbParticles);
+    Fluid(unsigned int _nbParticles);
     ~Fluid();
 
 public:
-    void ProcessFluid();
+    void RefreshGrid(unsigned int _maxWorkGroupX, unsigned short _maxWorkGroupY, unsigned short _maxWorkGroupZ);
+    void ApplyForceOnCS(unsigned int _maxWorkGroupX, unsigned short _maxWorkGroupY, unsigned short _maxWorkGroupZ);
     void RenderFluid(const GLfloat* _projectionMatrix, const GLfloat* _viewMatrix) const;
-    QVector3D Center() const {return mCenter;}
+    QVector3D Center() const {return QVector3D(0,0,0);} //CAN'T CENTER BECAUSE GRID IS NOT DISPLAYING WHERE IT SHOULD
 
 private:
     void LoadShader();

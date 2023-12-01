@@ -55,7 +55,7 @@ void OGL_Buffer::DrawBufferIndices(const GLenum _mode, const GLsizei _size, cons
 
 void OGL_Buffer::BindBase(int _index)
 {
-    //mBuffer.bindBase(GL_SHADER_STORAGE_BUFFER, 0);
+    BindBuffer();
     QOpenGLExtraFunctions _functions = QOpenGLExtraFunctions(QOpenGLContext::currentContext());
     _functions.glBindBufferBase(GL_SHADER_STORAGE_BUFFER, _index, mBuffer.bufferId());
 }
@@ -67,11 +67,13 @@ void OGL_Buffer::SetUsagePattern(QOpenGLBuffer::UsagePattern _pattern)
 
 void* OGL_Buffer::Map(QOpenGLBuffer::Access _access)
 {
+    BindBuffer();
     return mBuffer.map(_access);
 }
 
 void OGL_Buffer::Unmap()
 {
+    BindBuffer();
     mBuffer.unmap();
 }
 

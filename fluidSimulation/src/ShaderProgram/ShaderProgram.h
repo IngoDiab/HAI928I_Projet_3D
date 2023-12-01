@@ -25,8 +25,13 @@ class ShaderProgram : protected QOpenGLExtraFunctions
     int mViewMatrixLocation;
     int mProjectionMatrixLocation;
 
+    int mNbParticuleLocation;
+    int mGridSizeLocation;
+
 public:
     SHADER_TYPE GetType() const {return mType;}
+    int GetNbParticuleLocation() const {return mNbParticuleLocation;}
+    int GetGridSizeLocation() const {return mGridSizeLocation;}
 
 public:
     ShaderProgram();
@@ -37,8 +42,7 @@ public:
     void BindProgram();
     void UnbindProgram();
     void LinkShaders();
-    template <typename ResultDataType>
-    ResultDataType* ProcessComputeShader(unsigned int _numGroupsX, unsigned int _numGroupsY, unsigned int _numGroupsZ, OGL_Buffer& _buffer);
+    void ProcessComputeShader(unsigned int _numGroupsX, unsigned int _numGroupsY, unsigned int _numGroupsZ);
 
     void SendMVP(const GLfloat* _modelMatrix, const GLfloat* _viewMatrix, const GLfloat* _projectionMatrix);
     void SendM(const GLfloat* _modelMatrix);
@@ -49,17 +53,5 @@ private:
     QString LoadShaderFromPath(const QString& _path);
     void GetLocation(int& _location, string _name);
 };
-
-template <typename ResultDataType>
-ResultDataType* ShaderProgram::ProcessComputeShader(unsigned int _numGroupsX, unsigned int _numGroupsY, unsigned int _numGroupsZ, OGL_Buffer& _buffer)
-{
-    if(mType != SHADER_TYPE::COMPUTING) return nullptr;
-    QOpenGLExtraFunctions _functions = QOpenGLExtraFunctions(QOpenGLContext::currentContext());
-    _functions.glDispatchCompute(_numGroupsX, _numGroupsY, _numGroupsZ);
-    _functions.glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-    ResultDataType* _processedData = (ResultDataType*)_buffer.Map(QOpenGLBuffer::ReadWrite);
-    _buffer.Unmap();
-    return _processedData;
-}
 
 #endif // SHADERPROGRAM_H

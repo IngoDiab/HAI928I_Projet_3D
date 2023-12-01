@@ -2,6 +2,7 @@
     <qresource prefix="/">
         <file>src/shaders/vertex_shader.glsl</file>
         <file>src/shaders/fragment_shader.glsl</file>
-        <file>src/shaders/compute_shader.glsl</file>
+        <file>src/shaders/compute_shader_forces.glsl</file>
+	<file>src/shaders/compute_shader_grid.glsl</file>
     </qresource>
 </RCC>

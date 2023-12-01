@@ -7,7 +7,7 @@ class Transform
 {
     QVector3D mPosition = QVector3D(1,1,1);
     QVector3D mRotation = QVector3D();
-    QVector3D mScale = QVector3D(1,1,1);
+    QVector3D mScale = QVector3D(.1f,.1f,.1f);
 
 public:
     QVector3D GetWorldPosition() const { return mPosition;}

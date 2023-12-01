@@ -44,7 +44,11 @@ class MyViewer : public QGLViewer, protected QOpenGLExtraFunctions
     Q_OBJECT
 
     Fluid* mFluid = nullptr;
-    unsigned long mNbParticles = 5;
+    unsigned long mNbParticles = 1000;
+
+    int mMaxWorkGroupX = 0;
+    int mMaxWorkGroupY = 0;
+    int mMaxWorkGroupZ = 0;
 
     QWidget * controls;
 
@@ -98,7 +102,8 @@ public :
 
         if (mFluid)
         {
-            mFluid->ProcessFluid();
+            mFluid->RefreshGrid(mMaxWorkGroupX, mMaxWorkGroupY, mMaxWorkGroupZ);
+            mFluid->ApplyForceOnCS(mMaxWorkGroupX, mMaxWorkGroupY, mMaxWorkGroupZ);
             mFluid->RenderFluid(_projectionMatrixF, _viewMatrixF);
         }
 
@@ -115,7 +120,7 @@ public :
 
     void adjustCamera( QVector3D const & bb , QVector3D const & BB ) {
         QVector3D const & center = ( bb + BB )/2.f;
-        setSceneCenter( qglviewer::Vec( center[0] , center[1] , center[2] ) );
+        setSceneCenter( qglviewer::Vec( 1,1,1 ) );
         setSceneRadius( 1.5f * ( BB - bb ).length() );
         showEntireScene();
     }
@@ -156,10 +161,16 @@ public :
 
         //
         setSceneCenter( qglviewer::Vec( 0 , 0 , 0 ) );
-        setSceneRadius( 10.f );
+        setSceneRadius( 100.f );
         showEntireScene();
 
         mFluid = new Fluid(mNbParticles);
+
+        //Get max workGroups
+        QOpenGLExtraFunctions _functions = QOpenGLExtraFunctions(QOpenGLContext::currentContext());
+        _functions.glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, &mMaxWorkGroupX);
+        _functions.glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 1, &mMaxWorkGroupY);
+        _functions.glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 2, &mMaxWorkGroupZ);
     }
 
     QString helpString() const {
