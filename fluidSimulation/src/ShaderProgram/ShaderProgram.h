@@ -21,17 +21,25 @@ class ShaderProgram : protected QOpenGLExtraFunctions
     QOpenGLShaderProgram mProgram;
     SHADER_TYPE mType = SHADER_TYPE::NOT_INTIALIZED;
 
+    //MVP
     int mModelMatrixLocation;
     int mViewMatrixLocation;
     int mProjectionMatrixLocation;
 
+    //Particles
     int mNbParticuleLocation;
+
+    //Grid
     int mGridSizeLocation;
+    int mStepLocation[3];
+    int mbbLocation[3];
 
 public:
     SHADER_TYPE GetType() const {return mType;}
     int GetNbParticuleLocation() const {return mNbParticuleLocation;}
     int GetGridSizeLocation() const {return mGridSizeLocation;}
+    int GetStepLocation(ushort _index) const {return mStepLocation[_index];}
+    int GetbbLocation(ushort _index) const {return mbbLocation[_index];}
 
 public:
     ShaderProgram();

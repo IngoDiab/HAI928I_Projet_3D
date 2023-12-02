@@ -20,7 +20,7 @@ Fluid::Fluid(unsigned int _nbParticles)
     for(ParticleComputableData& _particleData : mParticleComputableData)
     {
         _particleData.mPositionX = rand()/(float)RAND_MAX *20. -10;
-        _particleData.mPositionY = rand()/(float)RAND_MAX *20. -10;
+        _particleData.mPositionY = rand()/(float)RAND_MAX *20. +10;
         _particleData.mPositionZ = rand()/(float)RAND_MAX *20. -10;
     }
 
@@ -71,6 +71,11 @@ void Fluid::RefreshGrid(unsigned int _maxWorkGroupX, unsigned short _maxWorkGrou
     QOpenGLExtraFunctions _functions = QOpenGLExtraFunctions(QOpenGLContext::currentContext());
     _functions.glUniform1ui(mComputeShaderGrid->GetNbParticuleLocation(), mParticleComputableData.size());
     _functions.glUniform1ui(mComputeShaderGrid->GetGridSizeLocation(), _sizeGrid);
+    for(ushort i = 0; i<3; ++i)
+    {
+        _functions.glUniform1f(mComputeShaderGrid->GetStepLocation(i), mGrid->GetStep(i));
+        _functions.glUniform1f(mComputeShaderGrid->GetbbLocation(i), mGrid->Getbb(i));
+    }
 
     //Copy data
     mVoxelsBuffer.CopyDataToBuffer(mGrid->GetAllVoxels());
@@ -83,7 +88,6 @@ void Fluid::RefreshGrid(unsigned int _maxWorkGroupX, unsigned short _maxWorkGrou
 
     //Retrieve data from buffers
     Voxel* _retrievedVoxels = mVoxelsBuffer.RetrieveFromComputeShader<Voxel>();
-    ParticleComputableData* _retrievedParticles = mParticlesBuffer.RetrieveFromComputeShader<ParticleComputableData>();
 
     //Refresh voxels
     uint _nbVoxels = mGrid->GetNbVoxels();
@@ -92,6 +96,10 @@ void Fluid::RefreshGrid(unsigned int _maxWorkGroupX, unsigned short _maxWorkGrou
 
     //Shader
     mComputeShaderGrid->UnbindProgram();
+
+//    QVector<uint> _voxels = mGrid->GetVoxelIndicesInRange(QVector3D(8,8,8), 8);
+//    for(uint i = 0; i < _voxels.size(); ++i)
+//        mGrid->GetVoxel(_voxels[i]).mNbParticles = 1;
 
     //Draw
     mGrid->DrawGrid();
@@ -123,7 +131,7 @@ void Fluid::ApplyForceOnCS(unsigned int _maxWorkGroupX, unsigned short _maxWorkG
     mComputeShaderForces->UnbindProgram();
 }
 
-void Fluid::RenderFluid(const GLfloat* _projectionMatrix, const GLfloat* _viewMatrix) const
+void Fluid::Render(const GLfloat* _projectionMatrix, const GLfloat* _viewMatrix) const
 {
     if (!mDisplayParticles || !mParticleTemplateDisplay) return;
 

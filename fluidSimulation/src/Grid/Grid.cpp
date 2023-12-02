@@ -1,46 +1,44 @@
 #include "Grid.h"
 #include "QtDebug"
 #include "../Particle/Particle.h"
+#include <cmath>
+using namespace std;
 
-Grid::Grid()
-{
+Grid::Grid(){}
 
-}
-
-Grid::Grid(QVector3D& _bb, QVector3D& _BB, unsigned int _nbVoxelPerSide)
+Grid::Grid(const QVector3D& _bb, const QVector3D& _BB, unsigned int _nbVoxelPerSide)
 {
     GenerateGrid(_bb, _BB, _nbVoxelPerSide);
 }
 
-void Grid::GenerateGrid(QVector3D& _bb, QVector3D& _BB, unsigned int _nbVoxelPerSide)
+void Grid::GenerateGrid(const QVector3D& _bb, const QVector3D& _BB, unsigned int _nbVoxelPerSide)
 {
-    mNbVoxelPerSide = _nbVoxelPerSide;
-    mAllVoxels.resize(_nbVoxelPerSide*_nbVoxelPerSide*_nbVoxelPerSide);
-//    for(Voxel& _voxel : mAllVoxels)
-//        _voxel.mNbParticles = 0;
+    mNbVoxelsPerSide = _nbVoxelPerSide;
+    mNbVoxels = _nbVoxelPerSide*_nbVoxelPerSide*_nbVoxelPerSide;
+    mAllVoxels.resize(mNbVoxels);
 
-    _bb -= QVector3D(_nbVoxelPerSide*mOffset, _nbVoxelPerSide*mOffset, _nbVoxelPerSide*mOffset);
-    _BB += QVector3D(_nbVoxelPerSide*mOffset, _nbVoxelPerSide*mOffset, _nbVoxelPerSide*mOffset);
+    mbb = _bb - QVector3D(_nbVoxelPerSide*mOffset, _nbVoxelPerSide*mOffset, _nbVoxelPerSide*mOffset);
+    mBB = _BB + QVector3D(_nbVoxelPerSide*mOffset, _nbVoxelPerSide*mOffset, _nbVoxelPerSide*mOffset);
 
-    float _stepX = (_BB.x() - _bb.x())/(float)_nbVoxelPerSide;
-    float _stepY = (_BB.y() - _bb.y())/(float)_nbVoxelPerSide;
-    float _stepZ = (_BB.z() - _bb.z())/(float)_nbVoxelPerSide;
+    mStep[0] = (mBB.x() - mbb.x())/(float)_nbVoxelPerSide;
+    mStep[1] = (mBB.y() - mbb.y())/(float)_nbVoxelPerSide;
+    mStep[2] = (mBB.z() - mbb.z())/(float)_nbVoxelPerSide;
 
-    for(unsigned int _z = 0; _z < mNbVoxelPerSide; ++_z)
-        for(unsigned int _y = 0; _y < mNbVoxelPerSide; ++_y)
-            for(unsigned int _x = 0; _x < mNbVoxelPerSide; ++_x)
-            {
-                uint _arrayIndex = XYZCoordToLinearCoord(_x, _y, _z);
-                Voxel& _voxel = mAllVoxels[_arrayIndex];
-                _voxel.mbbX = _bb.x() + _x*_stepX;
-                _voxel.mBBX = _bb.x() + (_x+1)*_stepX;
+//    for(unsigned int _k = 0; _k < mNbVoxelsPerSide; ++_k)
+//        for(unsigned int _j = 0; _j < mNbVoxelsPerSide; ++_j)
+//            for(unsigned int _i = 0; _i < mNbVoxelsPerSide; ++_i)
+//            {
+//                uint _arrayIndex = GridCoordToLinearCoord(_i, _j, _k);
+//                Voxel& _voxel = mAllVoxels[_arrayIndex];
+//                _voxel.mbbX = mbb.x() + _i*mStepX;
+//                _voxel.mBBX = mbb.x() + (_i+1)*mStepX;
 
-                _voxel.mbbY = _bb.y() + _y*_stepY;
-                _voxel.mBBY = _bb.y() + (_y+1)*_stepY;
+//                _voxel.mbbY = mbb.y() + _j*mStepY;
+//                _voxel.mBBY = mbb.y() + (_j+1)*mStepY;
 
-                _voxel.mbbZ = _bb.z() + _z*_stepZ;
-                _voxel.mBBZ = _bb.z() + (_z+1)*_stepZ;
-            }
+//                _voxel.mbbZ = mbb.z() + _k*mStepZ;
+//                _voxel.mBBZ = mbb.z() + (_k+1)*mStepZ;
+//            }
 }
 
 void Grid::DrawGrid()
@@ -72,7 +70,7 @@ void Grid::DrawGrid()
         const QVector3D _bottomFarRight = QVector3D(_voxel.mBBX,_voxel.mbbY, _voxel.mbbZ);
         corners[7] = _bottomFarRight;
 
-
+        if(_voxel.mNbParticles <1)continue;
         _voxel.mNbParticles > 0 ? glColor3f(1,0,0) : glColor3f(0,0,0);
         DisplayVoxel(corners);
     }
@@ -100,25 +98,67 @@ void Grid::DrawFace(const unsigned int& _index1, const unsigned int& _index2, co
     glEnable(GL_LIGHTING);
 }
 
-uint Grid::XYZCoordToLinearCoord(uint _x, uint _y, uint _z)
+uint Grid::GridCoordToLinearCoord(uint _i, uint _j, uint _k) const
 {
-    return _z*mNbVoxelPerSide*mNbVoxelPerSide + _y*mNbVoxelPerSide + _x;
+    return _k*mNbVoxelsPerSide*mNbVoxelsPerSide + _j*mNbVoxelsPerSide + _i;
 }
 
-void Grid::PutInVoxels(const ParticleComputableData& _particle, unsigned int _index)
+uint Grid::GridCoordToLinearCoord(const QVector3D& _position) const
 {
-    for(Voxel& _voxel : mAllVoxels)
-    {
-        if(!IsParticleInVoxel(_voxel, _particle)) continue;
-        _voxel.mAllParticles[_voxel.mNbParticles++] = _index;
-    }
+    return _position.z()*mNbVoxelsPerSide*mNbVoxelsPerSide + _position.y()*mNbVoxelsPerSide + _position.x();
 }
 
-//CS
-bool Grid::IsParticleInVoxel(const Voxel& _voxel, const ParticleComputableData& _particle)
+QVector3D Grid::XYZCoordToGridCoord(const QVector3D& _position) const
 {
-    bool _inXaxis = _voxel.mbbX <= _particle.mPositionX && _particle.mPositionX <= _voxel.mBBX;
-    bool _inYaxis = _voxel.mbbY <= _particle.mPositionY && _particle.mPositionY <= _voxel.mBBY;
-    bool _inZaxis = _voxel.mbbZ <= _particle.mPositionZ && _particle.mPositionZ <= _voxel.mBBZ;
-    return _inXaxis && _inYaxis && _inZaxis;
+    float _distanceX = mBB.x() - mbb.x();
+    float _distanceY = mBB.y() - mbb.y();
+    float _distanceZ = mBB.z() - mbb.z();
+    const unsigned int _i = ((_position.x()-mbb.x())/_distanceX)*mNbVoxelsPerSide;
+    const unsigned int _j = ((_position.y()-mbb.y())/_distanceY)*mNbVoxelsPerSide;
+    const unsigned int _k = ((_position.z()-mbb.z())/_distanceZ)*mNbVoxelsPerSide;
+    return QVector3D(_i, _j, _k);
+}
+
+//void Grid::PutInVoxels(const ParticleComputableData& _particle, unsigned int _index)
+//{
+//    for(Voxel& _voxel : mAllVoxels)
+//    {
+//        if(!IsParticleInVoxel(_voxel, _particle)) continue;
+//        _voxel.mAllParticles[_voxel.mNbParticles++] = _index;
+//    }
+//}
+
+//bool Grid::IsParticleInVoxel(const Voxel& _voxel, const ParticleComputableData& _particle)
+//{
+//    bool _inXaxis = _voxel.mbbX <= _particle.mPositionX && _particle.mPositionX <= _voxel.mBBX;
+//    bool _inYaxis = _voxel.mbbY <= _particle.mPositionY && _particle.mPositionY <= _voxel.mBBY;
+//    bool _inZaxis = _voxel.mbbZ <= _particle.mPositionZ && _particle.mPositionZ <= _voxel.mBBZ;
+//    return _inXaxis && _inYaxis && _inZaxis;
+//}
+
+QVector<uint> Grid::GetVoxelIndicesInRange(const QVector3D& _position, float _distance) const
+{
+    int _nbVoxelX = ceil(_distance/mStep[0]);
+    int _nbVoxelY = ceil(_distance/mStep[1]);
+    int _nbVoxelZ = ceil(_distance/mStep[2]);
+    QVector3D _gridPosition = XYZCoordToGridCoord(_position);
+    QVector<uint> _voxels = QVector<uint>();
+
+    uint _minK = max(_gridPosition.z() - _nbVoxelZ, 0.f);
+    uint _minJ = max(_gridPosition.y() - _nbVoxelY, 0.f);
+    uint _minI = max(_gridPosition.x() - _nbVoxelX, 0.f);
+
+    uint _maxK = min(_gridPosition.z() + _nbVoxelZ, mNbVoxelsPerSide - 1.f);
+    uint _maxJ = min(_gridPosition.y() + _nbVoxelY, mNbVoxelsPerSide - 1.f);
+    uint _maxI = min(_gridPosition.x() + _nbVoxelX, mNbVoxelsPerSide - 1.f);
+
+    for(unsigned int _k = _minK; _k <= _maxK; ++_k)
+        for(unsigned int _j = _minJ; _j <= _maxJ; ++_j)
+            for(unsigned int _i = _minI; _i <= _maxI; ++_i)
+            {
+                uint _linearCoord = GridCoordToLinearCoord(_i, _j, _k);
+                //if(_linearCoord < 0 || _linearCoord >= mNbVoxels) continue;
+                _voxels.push_back(_linearCoord);
+            }
+    return _voxels;
 }

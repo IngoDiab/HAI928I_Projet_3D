@@ -29,5 +29,5 @@ void ApplyGravity()
 
 void main()
 {
-    //ApplyGravity();
+    ApplyGravity();
 }

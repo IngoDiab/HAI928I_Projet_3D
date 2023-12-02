@@ -13,8 +13,12 @@ HEADERS += ./src/Mesh/Mesh.h \
     ./src/others/MyViewer.h \
     ./src/gl/GLUtilityMethods.h \
     ./src/gl/BasicColors.h \
+    src/Utils/Singleton.h \
+    src/Container/Container.h \
     src/Grid/Grid.h \
     src/Mesh/Cube/Cube.h \
+    src/Physics/Colliders/Cube/CubeCollider.h \
+    src/Physics/PhysicManager/PhysicManager.h \
     src/Transform/Transform.h \
     src/Fluid/Fluid.h \
     src/Particle/Particle.h \
@@ -26,8 +30,11 @@ HEADERS += ./src/Mesh/Mesh.h \
 SOURCES += ./src/main.cpp \
     ./src/gl/GLUtilityMethods.cpp\
     ./src/gl/BasicColors.cpp \
+    src/Container/Container.cpp \
     src/Grid/Grid.cpp \
     src/Mesh/Cube/Cube.cpp \
+    src/Physics/Colliders/Cube/CubeCollider.cpp \
+    src/Physics/PhysicManager/PhysicManager.cpp \
     src/Transform/Transform.cpp \
     src/Fluid/Fluid.cpp \
     src/Particle/Particle.cpp \

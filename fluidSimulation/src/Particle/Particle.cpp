@@ -5,6 +5,7 @@
 Particle::Particle()
 {
     mMesh = new Sphere();
+    mTransform.SetWorldScale(QVector3D(.1f, .1f, .1f));
 }
 
 Particle::Particle(const QVector3D& _position, const float _scale)

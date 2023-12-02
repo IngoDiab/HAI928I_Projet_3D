@@ -37,7 +37,7 @@ public:
 public:
     void RefreshGrid(unsigned int _maxWorkGroupX, unsigned short _maxWorkGroupY, unsigned short _maxWorkGroupZ);
     void ApplyForceOnCS(unsigned int _maxWorkGroupX, unsigned short _maxWorkGroupY, unsigned short _maxWorkGroupZ);
-    void RenderFluid(const GLfloat* _projectionMatrix, const GLfloat* _viewMatrix) const;
+    void Render(const GLfloat* _projectionMatrix, const GLfloat* _viewMatrix) const;
     QVector3D Center() const {return QVector3D(0,0,0);} //CAN'T CENTER BECAUSE GRID IS NOT DISPLAYING WHERE IT SHOULD
 
 private:

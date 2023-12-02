@@ -31,6 +31,12 @@ ShaderProgram::ShaderProgram(const QString& _cPath)
 
     GetLocation(mNbParticuleLocation, "nbParticles");
     GetLocation(mGridSizeLocation, "sizeGrid");
+    GetLocation(mStepLocation[0], "stepX");
+    GetLocation(mStepLocation[1], "stepY");
+    GetLocation(mStepLocation[2], "stepZ");
+    GetLocation(mbbLocation[0], "bbX");
+    GetLocation(mbbLocation[1], "bbY");
+    GetLocation(mbbLocation[2], "bbZ");
 }
 
 

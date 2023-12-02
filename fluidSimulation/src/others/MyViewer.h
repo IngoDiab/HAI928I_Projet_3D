@@ -38,6 +38,7 @@ using namespace std;
 #include <cmath>
 
 #include "../Fluid/Fluid.h"
+#include "../Container/Container.h"
 
 class MyViewer : public QGLViewer, protected QOpenGLExtraFunctions
 {
@@ -45,6 +46,8 @@ class MyViewer : public QGLViewer, protected QOpenGLExtraFunctions
 
     Fluid* mFluid = nullptr;
     unsigned long mNbParticles = 1000;
+
+    Container* mContainer = nullptr;
 
     int mMaxWorkGroupX = 0;
     int mMaxWorkGroupY = 0;
@@ -104,7 +107,12 @@ public :
         {
             mFluid->RefreshGrid(mMaxWorkGroupX, mMaxWorkGroupY, mMaxWorkGroupZ);
             mFluid->ApplyForceOnCS(mMaxWorkGroupX, mMaxWorkGroupY, mMaxWorkGroupZ);
-            mFluid->RenderFluid(_projectionMatrixF, _viewMatrixF);
+            mFluid->Render(_projectionMatrixF, _viewMatrixF);
+        }
+
+        if(mContainer)
+        {
+            mContainer->Render(_projectionMatrixF, _viewMatrixF);
         }
 
         update();
@@ -165,6 +173,7 @@ public :
         showEntireScene();
 
         mFluid = new Fluid(mNbParticles);
+        mContainer = new Container();
 
         //Get max workGroups
         QOpenGLExtraFunctions _functions = QOpenGLExtraFunctions(QOpenGLContext::currentContext());
