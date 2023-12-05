@@ -189,6 +189,9 @@ void Fluid::Render(const GLfloat* _projectionMatrix, const GLfloat* _viewMatrix)
 
     //Shader
     mRenderShader->UnbindProgram();
+
+    //Draw
+    mGrid->DrawGrid();
 }
 
 void Fluid::RefreshGrid(unsigned int _maxWorkGroupX, unsigned short _maxWorkGroupY, unsigned short _maxWorkGroupZ)
@@ -258,9 +261,6 @@ void Fluid::RefreshGrid(unsigned int _maxWorkGroupX, unsigned short _maxWorkGrou
     QVector<CubeCollider*> _colliders = PhysicManager::Instance()->GetCubeColliders();
     for(int i = 0; i < _colliders.size(); ++i)
         mGrid->PutInVoxels(*_colliders[i],i);
-
-    //Draw
-    mGrid->DrawGrid();
 }
 
 void Fluid::ApplyForceOnCS(unsigned int _maxWorkGroupX, unsigned short _maxWorkGroupY, unsigned short _maxWorkGroupZ)
