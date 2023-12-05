@@ -7,6 +7,7 @@ class MyMesh;
 
 struct ParticleComputableData
 {
+    float mPreviousPositionX, mPreviousPositionY, mPreviousPositionZ = 0;
     float mPositionX, mPositionY, mPositionZ = 0;
     float mVelocityX, mVelocityY, mVelocityZ = 0;
 

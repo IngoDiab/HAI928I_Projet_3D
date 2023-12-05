@@ -2,6 +2,7 @@
 #define TRANSFORM_H
 
 #include <QVector3D>
+#include <QMatrix4x4>
 
 class Transform
 {
@@ -10,6 +11,10 @@ class Transform
     QVector3D mScale = QVector3D(1,1,1);
 
 public:
+    QVector3D GetRightAxis() const {return GetModelMatrix()*QVector3D(1,0,0);}
+    QVector3D GetUpAxis() const {return GetModelMatrix()*QVector3D(0,1,0);}
+    QVector3D GetForwardAxis() const {return GetModelMatrix()*QVector3D(0,0,1);}
+
     QVector3D GetWorldPosition() const { return mPosition;}
     QVector3D GetWorldRotation() const { return mRotation;}
     QVector3D GetWorldScale() const { return mScale;}
@@ -23,6 +28,7 @@ public:
 
 public:
     QMatrix4x4 GetModelMatrix() const;
+    QMatrix4x4 GetModelMatrixNoScale() const;
 };
 
 #endif // TRANSFORM_H

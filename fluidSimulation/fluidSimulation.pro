@@ -13,6 +13,7 @@ HEADERS += ./src/Mesh/Mesh.h \
     ./src/others/MyViewer.h \
     ./src/gl/GLUtilityMethods.h \
     ./src/gl/BasicColors.h \
+    src/Utils/Macros.h \
     src/Utils/Singleton.h \
     src/Container/Container.h \
     src/Grid/Grid.h \

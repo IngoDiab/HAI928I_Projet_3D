@@ -8,16 +8,19 @@ class CubeCollider;
 
 class PhysicManager : public Singleton<PhysicManager>
 {
-    int mFPSPhysic = 200;
-    float mTimer = 0;
+    QVector<CubeCollider*> mCubePhysics = QVector<CubeCollider*>();
 
-    QVector<CubeCollider> mCubePhysics = QVector<CubeCollider>();
+public:
+    QVector<CubeCollider*> GetCubeColliders() const {return mCubePhysics;}
 
 public:
     PhysicManager();
 
 public:
-    void UpdatePhysic(const float _deltaTime);
+    void AddCollider(CubeCollider* const _collider);
+
+private:
+    bool Contains(const CubeCollider* const _collider) const;
 };
 
 #endif // PHYSICMANAGER_H

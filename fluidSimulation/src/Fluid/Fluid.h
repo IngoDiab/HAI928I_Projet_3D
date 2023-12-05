@@ -7,12 +7,17 @@
 #include "../Grid/Grid.h"
 
 class QGLViewer;
+class CubeCollider;
 
 class Fluid
 {
     //Particles
     unsigned int mNbParticles = 0;
     QVector<ParticleComputableData> mParticleComputableData;
+
+    //Physic
+    int mFPSFluid = 120;
+    float mTimer = 0;
 
     //Display
     ShaderProgram* mRenderShader = nullptr;
@@ -35,12 +40,16 @@ public:
     ~Fluid();
 
 public:
-    void RefreshGrid(unsigned int _maxWorkGroupX, unsigned short _maxWorkGroupY, unsigned short _maxWorkGroupZ);
-    void ApplyForceOnCS(unsigned int _maxWorkGroupX, unsigned short _maxWorkGroupY, unsigned short _maxWorkGroupZ);
+    void Collisions();
+    bool Detection(const QVector3D& _position, const CubeCollider& _collider);
+    void Resolution(ParticleComputableData& _particle, const CubeCollider& _collider);
+    void UpdateFluid(double _deltaTime, unsigned int _maxWorkGroupX, unsigned short _maxWorkGroupY, unsigned short _maxWorkGroupZ);
     void Render(const GLfloat* _projectionMatrix, const GLfloat* _viewMatrix) const;
     QVector3D Center() const {return QVector3D(0,0,0);} //CAN'T CENTER BECAUSE GRID IS NOT DISPLAYING WHERE IT SHOULD
 
 private:
+    void RefreshGrid(unsigned int _maxWorkGroupX, unsigned short _maxWorkGroupY, unsigned short _maxWorkGroupZ);
+    void ApplyForceOnCS(unsigned int _maxWorkGroupX, unsigned short _maxWorkGroupY, unsigned short _maxWorkGroupZ);
     void LoadShader();
     void ComputeCenter();
 };

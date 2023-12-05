@@ -6,6 +6,8 @@ using namespace std;
 #include <QGLWidget>
 #include <QVector3D>
 
+#include "../Utils/Macros.h"
+
 //      Y
 //      |
 //      |
@@ -16,7 +18,7 @@ using namespace std;
 //  Z
 //      right-handed
 
-class ParticleComputableData;
+class CubeCollider;
 
 struct Voxel
 {
@@ -24,8 +26,11 @@ struct Voxel
 
     float mBBX, mBBY, mBBZ = 0;
 
-    uint mAllParticles[1000];
+    uint mAllParticles[10];
     uint mNbParticles = 0;
+
+    uint mCubeCollider[10];
+    uint mNbCubeCollider = 0;
 
     Voxel(){}
 
@@ -65,7 +70,7 @@ public:
     Grid(const QVector3D& _bb, const QVector3D& _BB, unsigned int _nbVoxelPerSide);
 
 public:
-    void GenerateGrid(const QVector3D& _bb, const QVector3D& _BB, unsigned int _nbVoxelPerSide);
+    void GenerateBoundingBoxGrid(const QVector3D& _bb, const QVector3D& _BB, unsigned int _nbVoxelPerSide);
     void DrawGrid();
     void DisplayVoxel(const vector<QVector3D>& corners) const;
     void DrawFace(const unsigned int& _index1, const unsigned int& _index2, const unsigned int& _index3, const unsigned int& _index4, const vector<QVector3D>& corners) const;
@@ -75,8 +80,8 @@ public:
 
     //CS
     QVector<uint> GetVoxelIndicesInRange(const QVector3D& _position, float _distance) const;
-//    void PutInVoxels(const ParticleComputableData& _particle, unsigned int _index);
-//    bool IsParticleInVoxel(const Voxel& _voxel, const ParticleComputableData& _particle);
+    void PutInVoxels(const CubeCollider& _cube, unsigned int _index);
+    bool IsColliderInVoxel(const Voxel& _voxel, const CubeCollider& _collider);
 };
 
 #endif // GRID_H

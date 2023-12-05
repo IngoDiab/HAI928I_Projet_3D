@@ -39,20 +39,32 @@ using namespace std;
 
 #include "../Fluid/Fluid.h"
 #include "../Container/Container.h"
+#include "../Physics/PhysicManager/PhysicManager.h"
+#include "../Utils/Macros.h"
 
 class MyViewer : public QGLViewer, protected QOpenGLExtraFunctions
 {
     Q_OBJECT
 
-    Fluid* mFluid = nullptr;
-    unsigned long mNbParticles = 1000;
+    //Framerate
+    chrono::time_point<chrono::high_resolution_clock> mPreviousFrame = chrono::high_resolution_clock::now();
+    chrono::time_point<chrono::high_resolution_clock> mCurrentFrame;
+    double mDeltaTime = 0;
 
+    //Obstacles
+    PhysicManager mPhysicManager;
     Container* mContainer = nullptr;
 
+    //Fluid
+    Fluid* mFluid = nullptr;
+    unsigned long mNbParticles = NB_PARTICLES;
+
+    //Threads
     int mMaxWorkGroupX = 0;
     int mMaxWorkGroupY = 0;
     int mMaxWorkGroupZ = 0;
 
+    //Controls
     QWidget * controls;
 
 public :
@@ -62,7 +74,12 @@ public :
 
     }
 
-
+    void CalculateDeltaTime()
+    {
+        mCurrentFrame = chrono::high_resolution_clock::now();
+        mDeltaTime = std::chrono::duration<double>(mCurrentFrame - mPreviousFrame).count();
+        mPreviousFrame = mCurrentFrame;
+    }
 
     void add_actions_to_toolBar(QToolBar *toolBar)
     {
@@ -85,6 +102,8 @@ public :
 
 
     void draw() {
+        CalculateDeltaTime();
+
         glEnable(GL_DEPTH_TEST);
         glEnable( GL_LIGHTING );
 
@@ -105,8 +124,7 @@ public :
 
         if (mFluid)
         {
-            mFluid->RefreshGrid(mMaxWorkGroupX, mMaxWorkGroupY, mMaxWorkGroupZ);
-            mFluid->ApplyForceOnCS(mMaxWorkGroupX, mMaxWorkGroupY, mMaxWorkGroupZ);
+            mFluid->UpdateFluid(mDeltaTime, mMaxWorkGroupX, mMaxWorkGroupY, mMaxWorkGroupZ);
             mFluid->Render(_projectionMatrixF, _viewMatrixF);
         }
 

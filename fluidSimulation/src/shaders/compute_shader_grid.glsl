@@ -12,8 +12,11 @@ struct Voxel
     float mBBY;
     float mBBZ;
 
-    uint mAllParticles[1000];
+    uint mAllParticles[10];
     uint mNbParticles;
+
+    uint mCubeCollider[10];
+    uint mNbCubeCollider;
 };
 
 layout(std430, binding = 0) buffer VoxelBuffer
@@ -23,6 +26,10 @@ layout(std430, binding = 0) buffer VoxelBuffer
 
 struct Particle
 {
+    float previousPositionX;
+    float previousPositionY;
+    float previousPositionZ;
+
     float positionX;
     float positionY;
     float positionZ;
