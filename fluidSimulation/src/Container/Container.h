@@ -17,6 +17,7 @@ class Container
 
 public:
     Cube* GetMesh() const { return mMesh; }
+    CubeCollider* GetCollider() const {return mCollider;}
     Transform GetTransform() const { return mTransform; }
     Transform& GetTransform() { return mTransform; }
 

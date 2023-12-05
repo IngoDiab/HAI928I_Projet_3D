@@ -16,6 +16,7 @@ void Grid::GenerateBoundingBoxGrid(const QVector3D& _bb, const QVector3D& _BB, u
     mNbVoxelsPerSide = _nbVoxelPerSide;
     mNbVoxels = _nbVoxelPerSide*_nbVoxelPerSide*_nbVoxelPerSide;
     mAllVoxels.resize(mNbVoxels);
+    mCorners.resize(mNbVoxels);
 
     mbb = _bb - QVector3D(_nbVoxelPerSide*mOffset, _nbVoxelPerSide*mOffset, _nbVoxelPerSide*mOffset);
     mBB = _BB + QVector3D(_nbVoxelPerSide*mOffset, _nbVoxelPerSide*mOffset, _nbVoxelPerSide*mOffset);
@@ -23,54 +24,69 @@ void Grid::GenerateBoundingBoxGrid(const QVector3D& _bb, const QVector3D& _BB, u
     mStep[0] = (mBB.x() - mbb.x())/(float)_nbVoxelPerSide;
     mStep[1] = (mBB.y() - mbb.y())/(float)_nbVoxelPerSide;
     mStep[2] = (mBB.z() - mbb.z())/(float)_nbVoxelPerSide;
+
+    for(int i = 0; i < mAllVoxels.size(); ++i)
+    {
+        Voxel _voxel = mAllVoxels[i];
+        QVector<QVector3D> _corners = QVector<QVector3D>(8);
+        const QVector3D _topNearLeft = QVector3D(_voxel.mbbX, _voxel.mBBY, _voxel.mBBZ);
+        _corners[0] = _topNearLeft;
+
+        const QVector3D _bottomNearLeft = QVector3D(_voxel.mbbX, _voxel.mbbY, _voxel.mBBZ);
+        _corners[1] = _bottomNearLeft;
+
+        const QVector3D _topNearRight = QVector3D(_voxel.mBBX,_voxel.mBBY, _voxel.mBBZ);
+        _corners[2] = _topNearRight;
+
+        const QVector3D _bottomNearRight = QVector3D(_voxel.mBBX,_voxel.mbbY, _voxel.mBBZ);
+        _corners[3] = _bottomNearRight;
+
+        const QVector3D _topFarLeft = QVector3D(_voxel.mbbX, _voxel.mBBY, _voxel.mbbZ);
+        _corners[4] = _topFarLeft;
+
+        const QVector3D _bottomFarLeft = QVector3D(_voxel.mbbX, _voxel.mbbY, _voxel.mbbZ);
+        _corners[5] = _bottomFarLeft;
+
+        const QVector3D _topFarRight = QVector3D(_voxel.mBBX,_voxel.mBBY, _voxel.mbbZ);
+        _corners[6] = _topFarRight;
+
+        const QVector3D _bottomFarRight = QVector3D(_voxel.mBBX,_voxel.mbbY, _voxel.mbbZ);
+        _corners[7] = _bottomFarRight;
+
+        mCorners[i] = _corners;
+    }
 }
 
 void Grid::DrawGrid()
 {
-    for(const Voxel& _voxel : mAllVoxels)
+    for(int i = 0; i < mAllVoxels.size(); ++i)
     {
-        vector<QVector3D> corners = vector<QVector3D>(8);
-        const QVector3D _topNearLeft = QVector3D(_voxel.mbbX, _voxel.mBBY, _voxel.mBBZ);
-        corners[0] = _topNearLeft;
+        Voxel _voxel = mAllVoxels[i];
+        if(_voxel.mNbCubeCollider >= 1) continue;
+        glColor3f(0,0,0);
+        DisplayVoxel(mCorners[i]);
+    }
 
-        const QVector3D _bottomNearLeft = QVector3D(_voxel.mbbX, _voxel.mbbY, _voxel.mBBZ);
-        corners[1] = _bottomNearLeft;
-
-        const QVector3D _topNearRight = QVector3D(_voxel.mBBX,_voxel.mBBY, _voxel.mBBZ);
-        corners[2] = _topNearRight;
-
-        const QVector3D _bottomNearRight = QVector3D(_voxel.mBBX,_voxel.mbbY, _voxel.mBBZ);
-        corners[3] = _bottomNearRight;
-
-        const QVector3D _topFarLeft = QVector3D(_voxel.mbbX, _voxel.mBBY, _voxel.mbbZ);
-        corners[4] = _topFarLeft;
-
-        const QVector3D _bottomFarLeft = QVector3D(_voxel.mbbX, _voxel.mbbY, _voxel.mbbZ);
-        corners[5] = _bottomFarLeft;
-
-        const QVector3D _topFarRight = QVector3D(_voxel.mBBX,_voxel.mBBY, _voxel.mbbZ);
-        corners[6] = _topFarRight;
-
-        const QVector3D _bottomFarRight = QVector3D(_voxel.mBBX,_voxel.mbbY, _voxel.mbbZ);
-        corners[7] = _bottomFarRight;
-
-        //if(_voxel.mNbCubeCollider < 1) continue;
-        _voxel.mNbCubeCollider > 0 ? glColor3f(1,0,0) : glColor3f(0,0,0);
-        DisplayVoxel(corners);
+    for(int i = 0; i < mAllVoxels.size(); ++i)
+    {
+        Voxel _voxel = mAllVoxels[i];
+        if(_voxel.mNbCubeCollider < 1) continue;
+        glColor3f(1,0,0);
+        DisplayVoxel(mCorners[i]);
     }
 }
 
-void Grid::DisplayVoxel(const vector<QVector3D>& corners) const
+void Grid::DisplayVoxel(const QVector<QVector3D>& _corners) const
 {
-    DrawFace(0,1,3,2, corners); //Front
-    DrawFace(4,5,7,6, corners); //Back
-    DrawFace(0,1,5,4, corners); //Left
-    DrawFace(2,3,7,6, corners); //Right
-    DrawFace(0,2,6,4, corners); //Top
-    DrawFace(1,3,7,5, corners); //Bottom
+    DrawFace(0,1,3,2, _corners); //Front
+    DrawFace(4,5,7,6, _corners); //Back
+    DrawFace(0,1,5,4, _corners); //Left
+    DrawFace(2,3,7,6, _corners); //Right
+    DrawFace(0,2,6,4, _corners); //Top
+    DrawFace(1,3,7,5, _corners); //Bottom
 }
 
-void Grid::DrawFace(const unsigned int& _index1, const unsigned int& _index2, const unsigned int& _index3, const unsigned int& _index4, const vector<QVector3D>& corners) const
+void Grid::DrawFace(const unsigned int& _index1, const unsigned int& _index2, const unsigned int& _index3, const unsigned int& _index4, const QVector<QVector3D>& corners) const
 {
     glDisable(GL_LIGHTING);
     glBegin(GL_LINE_LOOP);
@@ -120,70 +136,96 @@ QVector3D Grid::XYZCoordToGridCoord(const QVector3D& _position) const
 //    return _inXaxis && _inYaxis && _inZaxis;
 //}
 
-void Grid::PutInVoxels(const CubeCollider& _cube, unsigned int _index)
+void Grid::PutInVoxels(const CubeCollider& _cube, unsigned int _indexCollider)
 {
-    for(Voxel& _voxel : mAllVoxels)
+    //mAllVoxels.size()
+    for(int i = 0; i < mAllVoxels.size(); ++i)
     {
-        _voxel.mNbCubeCollider = 0;
-        if(!IsColliderInVoxel(_voxel, _cube)) continue;
-        _voxel.mCubeCollider[_voxel.mNbCubeCollider++] = _index;
+        Voxel& _voxel = mAllVoxels[i];
+        if(!IsColliderInVoxel(_voxel, i, _cube)) continue;
+        _voxel.mCubeCollider[_voxel.mNbCubeCollider++] = _indexCollider;
     }
 }
 
-bool Grid::IsColliderInVoxel(const Voxel& _voxel, const CubeCollider& _collider)
+bool Grid::IsColliderInVoxel(const Voxel& _voxel, int _indexVoxel, const CubeCollider& _collider)
 {
     QVector3D _colliderbb = _collider.Getbb();
+    QVector3D _colliderBB = _collider.GetBB();
 
     QVector3D _voxelbb = QVector3D(_voxel.mbbX, _voxel.mbbY, _voxel.mbbZ);
     QVector3D _voxelBB = QVector3D(_voxel.mBBX, _voxel.mBBY, _voxel.mBBZ);
 
+    QVector<QVector3D> _cCorners = _collider.GetCorners();
+    QVector<QVector3D> _vCorners = mCorners[_indexVoxel];
+
     //Get relatives axis cube
-    QVector3D _right = _collider.GetXAxisCollision();
-    QVector3D _up = _collider.GetYAxisCollision();
-    QVector3D _forward = _collider.GetZAxisCollision();
+    QVector3D _axis[3];
+    _axis[0] = _collider.GetXAxisCollision();
+    _axis[1] = _collider.GetYAxisCollision();
+    _axis[2] = _collider.GetZAxisCollision();
 
-    //Get other corners
-    QVector3D _otherCx = _collider.GetOtherXCorner();
-    QVector3D _otherCy = _collider.GetOtherYCorner();
-    QVector3D _otherCz = _collider.GetOtherZCorner();
+    bool _isColliding = true;
+    for(ushort i = 0; i < 3; ++i)
+    {
+        //Project cubeCollider
+        float _cCenterProjDistancebb = QVector3D::dotProduct((_colliderbb + _colliderBB/2.0f) -_colliderbb, _axis[i]);
+        QVector3D _cCenterProjPos = _colliderbb + _cCenterProjDistancebb * _axis[i];
+        float _cbbProjDistancebb = QVector3D::dotProduct(_colliderbb -_colliderbb, _axis[i]);
+        QVector3D _cbbProjPos = _colliderbb + _cbbProjDistancebb * _axis[i];
+        float _cBBProjDistancebb = QVector3D::dotProduct(_colliderBB -_colliderbb, _axis[i]);
+        QVector3D _cBBProjPos = _colliderbb + _cBBProjDistancebb * _axis[i];
 
-    //Project particle on all axis
-    QVector3D _bbProjOnRight = _colliderbb + (QVector3D::dotProduct(_voxelbb - _colliderbb, _right) * _right);
-    QVector3D _bbProjOnUp = _colliderbb + (QVector3D::dotProduct(_voxelbb - _colliderbb, _up) * _up);
-    QVector3D _bbProjOnForward = _colliderbb + (QVector3D::dotProduct(_voxelbb - _colliderbb, _forward) * _forward );
+        //Project voxel center
+        float _vCenterProjDistancebb = QVector3D::dotProduct((_voxelbb + _voxelBB/2.0f ) -_colliderbb, _axis[i]);
+        QVector3D _vCenterProjPos = _colliderbb + _vCenterProjDistancebb * _axis[i];
 
-    QVector3D _BBProjOnRight = _colliderbb + (QVector3D::dotProduct(_voxelBB - _colliderbb, _right) * _right);
-    QVector3D _BBProjOnUp = _colliderbb + (QVector3D::dotProduct(_voxelBB - _colliderbb, _up) * _up);
-    QVector3D _BBProjOnForward = _colliderbb + (QVector3D::dotProduct(_voxelBB - _colliderbb, _forward) * _forward );
+        float _vMinCoordOnProjAxis = _vCenterProjDistancebb, _vMaxCoordOnProjAxis = _vCenterProjDistancebb;
+        QVector3D _vMinProjPos = _vCenterProjPos, _vMaxProjPos = _vCenterProjPos;
 
-    //Check each bb & BB voxel projected if one's orientation is between a pair of collider corner on each axis
-    float _dotVbbXCbb = QVector3D::dotProduct((_bbProjOnRight-_colliderbb).normalized(), _right);
-    float _dotVBBXCbb = QVector3D::dotProduct((_BBProjOnRight-_colliderbb).normalized(), _right);
-    float _dotVbbXCBB = QVector3D::dotProduct((_bbProjOnRight-_otherCx).normalized(), _right);
-    float _dotVBBXCBB = QVector3D::dotProduct((_BBProjOnRight-_otherCx).normalized(), _right);
+        //Each voxel corner
+        for(const QVector3D& _vCorner : _vCorners)
+        {
+            //Project corner
+            float _vCornerProjDistancebb = QVector3D::dotProduct(_vCorner -_colliderbb, _axis[i]);
+            QVector3D _vCornerProjPos = _colliderbb + _vCornerProjDistancebb * _axis[i];
 
-    float _dotVbbYCbb = QVector3D::dotProduct((_bbProjOnUp-_colliderbb).normalized(), _up);
-    float _dotVBBYCbb = QVector3D::dotProduct((_BBProjOnUp-_colliderbb).normalized(), _up);
-    float _dotVbbYCBB = QVector3D::dotProduct((_bbProjOnUp-_otherCy).normalized(), _up);
-    float _dotVBBYCBB = QVector3D::dotProduct((_BBProjOnUp-_otherCy).normalized(), _up);
+            //If projected behind center (<0) or above center (>0) get max distance to have max interval
+//            float _sens = QVector3D::dotProduct((_cBBProjPos - _cbbProjPos).normalized(), (_vCornerProjPos - _cbbProjPos).normalized());
+//            float _coordOnProjAxis = _sens * (_vCornerProjPos - _cbbProjPos).length();
 
-    float _dotVbbZCbb = QVector3D::dotProduct((_bbProjOnForward-_colliderbb).normalized(), _forward);
-    float _dotVBBZCbb = QVector3D::dotProduct((_BBProjOnForward-_colliderbb).normalized(), _forward);
-    float _dotVbbZCBB = QVector3D::dotProduct((_bbProjOnForward-_otherCz).normalized(), _forward);
-    float _dotVBBZCBB = QVector3D::dotProduct((_BBProjOnForward-_otherCz).normalized(), _forward);
+            if(_vCornerProjDistancebb < _vMinCoordOnProjAxis)
+            {
+                _vMinCoordOnProjAxis = _vCornerProjDistancebb;
+                _vMinProjPos = _vCornerProjPos;
+            }
 
-    bool _inXaxis = (_dotVbbXCbb >= 0 && _dotVbbXCBB <= 0) || (_dotVBBXCbb >= 0 &&  _dotVBBXCBB <= 0);
-    bool _inYaxis = (_dotVbbYCbb >= 0 && _dotVbbYCBB <= 0) || (_dotVBBYCbb >= 0 &&  _dotVBBYCBB <= 0);
-    bool _inZaxis = (_dotVbbZCbb >= 0 && _dotVbbZCBB <= 0) || (_dotVBBZCbb >= 0 &&  _dotVBBZCBB <= 0);
+            else if(_vCornerProjDistancebb > _vMaxCoordOnProjAxis)
+            {
+                _vMaxCoordOnProjAxis = _vCornerProjDistancebb;
+                _vMaxProjPos = _vCornerProjPos;
+            }
+        }
 
-    //If same orientation and bb to projection <= size on dimension for EVERY axis
-    return _inXaxis & _inYaxis & _inZaxis;
+//        glDisable(GL_LIGHTING);
+//        glPointSize(10);
+//        glBegin(GL_POINTS);
+//        glColor3f(0,1,1);
+//        //glVertex3f(_cbbProjPos.x(), _cbbProjPos.y(), _cbbProjPos.z());
+//        //glVertex3f(_cCenterProjPos.x(),_cCenterProjPos.y(),_cCenterProjPos.z());
+//        glVertex3f(_cBBProjPos.x(), _cBBProjPos.y(), _cBBProjPos.z());
+//        glColor3f(1,0,0);
+//        glVertex3f(_vMinProjPos.x(), _vMinProjPos.y(), _vMinProjPos.z());
+//        //glVertex3f(_vCenterProjPos.x(),_vCenterProjPos.y(),_vCenterProjPos.z());
+//        //glVertex3f(_vMaxProjPos.x(), _vMaxProjPos.y(), _vMaxProjPos.z());
+//        glEnd();
+//        glEnable(GL_LIGHTING);
 
-//    bool _inXaxis = !(_voxel.mBBX < _colliderbb.x() || _voxel.mbbX > _colliderBB.x());
-//    bool _inYaxis = !(_voxel.mBBY < _colliderbb.y() || _voxel.mbbY > _colliderBB.y());
-//    bool _inZaxis = !(_voxel.mBBZ < _colliderbb.z() || _voxel.mbbZ > _colliderBB.z());
+        bool _vMinAftercMax = _vMinCoordOnProjAxis > _cBBProjDistancebb;
+        bool _vMaxBeforecMin =  _vMaxCoordOnProjAxis < _cbbProjDistancebb;
+        _isColliding &= !(_vMinAftercMax || _vMaxBeforecMin);
+    }
 
-//    return _inXaxis && _inYaxis && _inZaxis;
+    return _isColliding;
 }
 
 QVector<uint> Grid::GetVoxelIndicesInRange(const QVector3D& _position, float _distance) const

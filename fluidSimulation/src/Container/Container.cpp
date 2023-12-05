@@ -7,7 +7,7 @@
 Container::Container()
 {
     mMesh = new Cube();
-    mTransform.SetWorldRotation(QVector3D(0,0,20));
+    //mTransform.SetWorldRotation(QVector3D(0,0,0));
     mTransform.SetWorldScale(QVector3D(30,1,30));
     mRenderShader = new ShaderProgram("src/shaders/vertex_shader.glsl", "src/shaders/fragment_shader.glsl");
     mCollider = new CubeCollider(&mTransform);

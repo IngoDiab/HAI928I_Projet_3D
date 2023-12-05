@@ -39,6 +39,7 @@ using namespace std;
 
 #include "../Fluid/Fluid.h"
 #include "../Container/Container.h"
+#include "../Physics//Colliders/Cube/CubeCollider.h"
 #include "../Physics/PhysicManager/PhysicManager.h"
 #include "../Utils/Macros.h"
 
@@ -54,6 +55,7 @@ class MyViewer : public QGLViewer, protected QOpenGLExtraFunctions
     //Obstacles
     PhysicManager mPhysicManager;
     Container* mContainer = nullptr;
+    Container* mContainer2 = nullptr;
 
     //Fluid
     Fluid* mFluid = nullptr;
@@ -128,10 +130,8 @@ public :
             mFluid->Render(_projectionMatrixF, _viewMatrixF);
         }
 
-        if(mContainer)
-        {
-            mContainer->Render(_projectionMatrixF, _viewMatrixF);
-        }
+        mContainer->Render(_projectionMatrixF, _viewMatrixF);
+        mContainer2->Render(_projectionMatrixF, _viewMatrixF);
 
         update();
     }
@@ -192,6 +192,12 @@ public :
 
         mFluid = new Fluid(mNbParticles);
         mContainer = new Container();
+        mContainer->GetTransform().SetWorldRotation(QVector3D(0,0,45));
+        mContainer->GetCollider()->RefreshColliderTransform();
+        mContainer2 = new Container();
+        mContainer2->GetTransform().SetWorldRotation(QVector3D(0,0,-45));
+        mContainer2->GetCollider()->RefreshColliderTransform();
+
 
         //Get max workGroups
         QOpenGLExtraFunctions _functions = QOpenGLExtraFunctions(QOpenGLContext::currentContext());

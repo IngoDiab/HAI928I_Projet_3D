@@ -12,7 +12,7 @@ struct Voxel
     float mBBY;
     float mBBZ;
 
-    uint mAllParticles[10];
+    uint mAllParticles[1000];
     uint mNbParticles;
 
     uint mCubeCollider[10];

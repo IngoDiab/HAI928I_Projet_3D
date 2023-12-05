@@ -14,6 +14,8 @@ class CubeCollider
 
 public:
     const Transform* GetParentTransform() const {return mParent;}
+    QVector<QVector3D> GetCorners() const {return mPositions;}
+
     QVector3D Getbb() const {return mPositions[0];}
     QVector3D GetBB() const {return mPositions[6];}
 
@@ -33,6 +35,7 @@ public:
     CubeCollider(const Transform* _transform);
 
 public:
+    void RefreshColliderTransform();
     void DrawFace(const unsigned int& _index1, const unsigned int& _index2, const unsigned int& _index3) const;
     void Render() const;
 };

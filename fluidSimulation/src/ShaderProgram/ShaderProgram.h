@@ -26,6 +26,9 @@ class ShaderProgram : protected QOpenGLExtraFunctions
     int mViewMatrixLocation;
     int mProjectionMatrixLocation;
 
+    //DeltaT
+    int mDeltaTimeLocation;
+
     //Particles
     int mNbParticuleLocation;
 
@@ -36,6 +39,7 @@ class ShaderProgram : protected QOpenGLExtraFunctions
 
 public:
     SHADER_TYPE GetType() const {return mType;}
+    int GetDeltaTimeLocation() const {return mDeltaTimeLocation;}
     int GetNbParticuleLocation() const {return mNbParticuleLocation;}
     int GetGridSizeLocation() const {return mGridSizeLocation;}
     int GetStepLocation(ushort _index) const {return mStepLocation[_index];}

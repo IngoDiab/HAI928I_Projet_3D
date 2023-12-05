@@ -22,7 +22,7 @@ layout(std430, binding = 0) buffer ParticleBuffer
     Particle particles[];
 };
 
-uniform float deltaTime = 0.01;
+uniform float deltaTime;
 
 void ApplyGravityOnVelocity()
 {

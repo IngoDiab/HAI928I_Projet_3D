@@ -44,28 +44,33 @@ Fluid::~Fluid()
 void Fluid::Collisions()
 {
     QVector<CubeCollider*> _allObstacles = PhysicManager::Instance()->GetCubeColliders();
-//    QVector<Voxel> _voxels = mGrid->GetAllVoxels();
+    QVector<Voxel> _voxels = mGrid->GetAllVoxels();
     for(ParticleComputableData& _particleData : mParticleComputableData)
     {
-//        QVector3D _position = QVector3D(_particleData.mPositionX, _particleData.mPositionY, _particleData.mPositionZ);
-//        QVector<uint> _voxelsNear = mGrid->GetVoxelIndicesInRange(_position, 10);
-//        for(uint _index : _voxelsNear)
-//        {
-//            uint* _colliders = _voxels[_index].mCubeCollider;
-//            uint _nbCollidersIn = _voxels[_index].mNbCubeCollider;
+        QVector3D _position = QVector3D(_particleData.mPositionX, _particleData.mPositionY, _particleData.mPositionZ);
+        QVector<uint> _voxelsNear = mGrid->GetVoxelIndicesInRange(_position, 10);
 
-//            for(uint i = 0; i < _nbCollidersIn; ++i)
-//            {
-//                bool _isColliding = Detection(_position, *_allObstacles[_colliders[i]]);
-//                if(_isColliding) Resolution(_particleData, *_allObstacles[_colliders[i]]);
-//            }
-//        }
-        for(CubeCollider* _obstacle : _allObstacles)
+        QVector<uint> _alreadyProcessedCollision = QVector<uint>();
+        for(uint _index : _voxelsNear)
         {
-            QVector3D _position = QVector3D(_particleData.mPositionX, _particleData.mPositionY, _particleData.mPositionZ);
-            bool _isColliding = Detection(_position, *_obstacle);
-            if(_isColliding) Resolution(_particleData, *_obstacle);
+            uint* _colliders = _voxels[_index].mCubeCollider;
+            uint _nbCollidersIn = _voxels[_index].mNbCubeCollider;
+
+            for(uint i = 0; i < _nbCollidersIn; ++i)
+            {
+                if(_alreadyProcessedCollision.contains(_colliders[i])) continue;
+                _alreadyProcessedCollision.push_back(_colliders[i]);
+                bool _isColliding = Detection(_position, *_allObstacles[_colliders[i]]);
+                if(_isColliding) Resolution(_particleData, *_allObstacles[_colliders[i]]);
+            }
+
         }
+//        for(CubeCollider* _obstacle : _allObstacles)
+//        {
+//            QVector3D _position = QVector3D(_particleData.mPositionX, _particleData.mPositionY, _particleData.mPositionZ);
+//            bool _isColliding = Detection(_position, *_obstacle);
+//            if(_isColliding) Resolution(_particleData, *_obstacle);
+//        }
     }
 }
 
@@ -139,17 +144,15 @@ void Fluid::Resolution(ParticleComputableData& _particle, const CubeCollider& _c
         _minT = min(_minT, _t);
     }
 
-    QVector3D _newPos = _previousPos + (_minT) * _movementDir;
+    QVector3D _newPos = _previousPos + _minT * _movementDir;
     _particle.mPositionX = _newPos.x();
     _particle.mPositionY = _newPos.y();
     _particle.mPositionZ = _newPos.z();
 
     _particle.mVelocityY = -_particle.mVelocityY/2;
-
-    //qDebug() << _newPos;
 }
 
-void Fluid::UpdateFluid(double _deltaTime, unsigned int _maxWorkGroupX, unsigned short _maxWorkGroupY, unsigned short _maxWorkGroupZ)
+void Fluid::UpdateFluid(float _deltaTime, unsigned int _maxWorkGroupX, unsigned short _maxWorkGroupY, unsigned short _maxWorkGroupZ)
 {
     mTimer+=_deltaTime;
     float _dtPhysic = 1.0f/(float)mFPSFluid;
@@ -211,7 +214,7 @@ void Fluid::RefreshGrid(unsigned int _maxWorkGroupX, unsigned short _maxWorkGrou
         _BBZ = max(_BBZ, _particleData.mPositionZ);
     }
 
-    int _sizeGrid = 7;
+    int _sizeGrid = 6;
     QVector3D _bb = QVector3D(_bbX, _bbY, _bbZ);
     QVector3D _BB = QVector3D(_BBX, _BBY, _BBZ);
     mGrid->GenerateBoundingBoxGrid(_bb, _BB, _sizeGrid);
@@ -259,6 +262,10 @@ void Fluid::RefreshGrid(unsigned int _maxWorkGroupX, unsigned short _maxWorkGrou
     //        mGrid->GetVoxel(_voxels[i]).mNbParticles = 1;
 
     QVector<CubeCollider*> _colliders = PhysicManager::Instance()->GetCubeColliders();
+    qDebug() <<_colliders.size();
+    for(uint i = 0; i < mGrid->GetNbVoxels(); ++i)
+        mGrid->GetVoxel(i).mNbCubeCollider = 0;
+
     for(int i = 0; i < _colliders.size(); ++i)
         mGrid->PutInVoxels(*_colliders[i],i);
 }
@@ -269,6 +276,9 @@ void Fluid::ApplyForceOnCS(unsigned int _maxWorkGroupX, unsigned short _maxWorkG
 
     //Use compute shader
     mComputeShaderForces->BindProgram();
+
+    QOpenGLExtraFunctions _functions = QOpenGLExtraFunctions(QOpenGLContext::currentContext());
+    _functions.glUniform1f(mComputeShaderForces->GetDeltaTimeLocation(), 1.f/(float)mFPSFluid);
 
     //Copy and bind buffer to compute shader
     mParticlesBuffer.CopyDataToBuffer(mParticleComputableData);

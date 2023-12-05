@@ -5,7 +5,13 @@
 
 CubeCollider::CubeCollider(const Transform* _transform) : mParent(_transform)
 {
-    QMatrix4x4 _modelMatrix = _transform->GetModelMatrix();
+    RefreshColliderTransform();
+    PhysicManager::Instance()->AddCollider(this);
+}
+
+void CubeCollider::RefreshColliderTransform()
+{
+    QMatrix4x4 _modelMatrix = mParent->GetModelMatrix();
 
     mPositions = QVector<QVector3D>() =
         {
@@ -23,8 +29,6 @@ CubeCollider::CubeCollider(const Transform* _transform) : mParent(_transform)
             _modelMatrix *QVector3D(-0.5,0.5,0.5), //LeftTopNear 7
 #pragma endregion
         };
-
-    PhysicManager::Instance()->AddCollider(this);
 }
 
 void CubeCollider::DrawFace(const unsigned int& _index1, const unsigned int& _index2, const unsigned int& _index3) const

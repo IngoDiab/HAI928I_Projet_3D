@@ -16,7 +16,7 @@ class Fluid
     QVector<ParticleComputableData> mParticleComputableData;
 
     //Physic
-    int mFPSFluid = 120;
+    int mFPSFluid = 60; //broken at 120
     float mTimer = 0;
 
     //Display
@@ -43,7 +43,7 @@ public:
     void Collisions();
     bool Detection(const QVector3D& _position, const CubeCollider& _collider);
     void Resolution(ParticleComputableData& _particle, const CubeCollider& _collider);
-    void UpdateFluid(double _deltaTime, unsigned int _maxWorkGroupX, unsigned short _maxWorkGroupY, unsigned short _maxWorkGroupZ);
+    void UpdateFluid(float _deltaTime, unsigned int _maxWorkGroupX, unsigned short _maxWorkGroupY, unsigned short _maxWorkGroupZ);
     void Render(const GLfloat* _projectionMatrix, const GLfloat* _viewMatrix) const;
     QVector3D Center() const {return QVector3D(0,0,0);} //CAN'T CENTER BECAUSE GRID IS NOT DISPLAYING WHERE IT SHOULD
 
