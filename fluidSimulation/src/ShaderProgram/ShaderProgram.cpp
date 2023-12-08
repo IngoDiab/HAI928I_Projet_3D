@@ -31,6 +31,7 @@ ShaderProgram::ShaderProgram(const QString& _cPath)
 
     GetLocation(mDeltaTimeLocation, "deltaTime");
     GetLocation(mNbParticuleLocation, "nbParticles");
+    GetLocation(mNbCubeCollidersLocation, "nbCubeColliders");
     GetLocation(mGridSizeLocation, "sizeGrid");
     GetLocation(mStepLocation[0], "stepX");
     GetLocation(mStepLocation[1], "stepY");
@@ -59,7 +60,7 @@ void ShaderProgram::AddShader(const QString& _path, const QOpenGLShader::ShaderT
 
     QOpenGLShader* _shader = new QOpenGLShader(_type);
     if (!_shader->compileSourceCode(_shaderCode)) return;
-    qWarning() << "Ce shader a bien ete compile : " << _path;
+    //qWarning() << "Ce shader a bien ete compile : " << _path;
     mProgram.addShader(_shader);
 }
 
@@ -86,7 +87,8 @@ void ShaderProgram::ProcessComputeShader(unsigned int _numGroupsX, unsigned int 
     if(mType != SHADER_TYPE::COMPUTING) return;
     QOpenGLExtraFunctions _functions = QOpenGLExtraFunctions(QOpenGLContext::currentContext());
     _functions.glDispatchCompute(_numGroupsX, _numGroupsY, _numGroupsZ);
-    _functions.glMemoryBarrier(GL_ALL_BARRIER_BITS);
+    _functions.glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+    _functions.glFinish();
 }
 
 void ShaderProgram::SendMVP(const GLfloat* _modelMatrix, const GLfloat* _viewMatrix, const GLfloat* _projectionMatrix)

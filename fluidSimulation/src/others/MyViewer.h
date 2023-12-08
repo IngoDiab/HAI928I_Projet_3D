@@ -54,12 +54,10 @@ class MyViewer : public QGLViewer, protected QOpenGLExtraFunctions
 
     //Obstacles
     PhysicManager mPhysicManager;
-    Container* mContainer = nullptr;
-    Container* mContainer2 = nullptr;
+    QVector<Container*> mContainers = QVector<Container*>(NB_CUBE_COLLIDERS, nullptr);
 
     //Fluid
     Fluid* mFluid = nullptr;
-    unsigned long mNbParticles = NB_PARTICLES;
 
     //Threads
     int mMaxWorkGroupX = 0;
@@ -81,6 +79,8 @@ public :
         mCurrentFrame = chrono::high_resolution_clock::now();
         mDeltaTime = std::chrono::duration<double>(mCurrentFrame - mPreviousFrame).count();
         mPreviousFrame = mCurrentFrame;
+
+        qDebug() << mDeltaTime;
     }
 
     void add_actions_to_toolBar(QToolBar *toolBar)
@@ -130,8 +130,8 @@ public :
             mFluid->Render(_projectionMatrixF, _viewMatrixF);
         }
 
-        mContainer->Render(_projectionMatrixF, _viewMatrixF);
-        mContainer2->Render(_projectionMatrixF, _viewMatrixF);
+        for(const Container* _container : mContainers)
+            _container->Render(_projectionMatrixF, _viewMatrixF);
 
         update();
     }
@@ -190,13 +190,15 @@ public :
         setSceneRadius( 100.f );
         showEntireScene();
 
-        mFluid = new Fluid(mNbParticles);
-        mContainer = new Container();
-        mContainer->GetTransform().SetWorldRotation(QVector3D(0,0,45));
-        mContainer->GetCollider()->RefreshColliderTransform();
-        mContainer2 = new Container();
-        mContainer2->GetTransform().SetWorldRotation(QVector3D(0,0,-45));
-        mContainer2->GetCollider()->RefreshColliderTransform();
+        mFluid = new Fluid();
+
+        for(uint i = 0; i < mContainers.size(); ++i)
+        {
+            Container* _container =new Container();
+            _container->GetTransform().SetWorldRotation(QVector3D(0,0,0));
+            _container->GetCollider()->RefreshColliderTransform();
+            mContainers[i] = _container;
+        }
 
 
         //Get max workGroups

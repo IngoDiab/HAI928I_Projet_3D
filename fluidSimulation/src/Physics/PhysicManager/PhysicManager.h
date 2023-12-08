@@ -2,6 +2,7 @@
 #define PHYSICMANAGER_H
 
 #include <QVector>
+#include <QVector3D>
 
 #include "../../Utils/Singleton.h"
 class CubeCollider;
@@ -12,6 +13,7 @@ class PhysicManager : public Singleton<PhysicManager>
 
 public:
     QVector<CubeCollider*> GetCubeColliders() const {return mCubePhysics;}
+    QVector<CubeCollider> GetCubeCollidersData()const;
 
 public:
     PhysicManager();

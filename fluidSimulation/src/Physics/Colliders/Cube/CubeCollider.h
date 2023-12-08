@@ -10,27 +10,24 @@ class Transform;
 class CubeCollider
 {
     const Transform* mParent = nullptr;
-    QVector<QVector3D> mPositions = QVector<QVector3D>();
+    float mCorners[24] = { 0 };
 
 public:
     const Transform* GetParentTransform() const {return mParent;}
-    QVector<QVector3D> GetCorners() const {return mPositions;}
+    float* GetCorners() {return mCorners;}
 
-    QVector3D Getbb() const {return mPositions[0];}
-    QVector3D GetBB() const {return mPositions[6];}
+    QVector3D GetCorner(uint _indexCorner) const {return QVector3D(mCorners[_indexCorner*3], mCorners[_indexCorner*3+1], mCorners[_indexCorner*3+2]);}
 
-    QVector3D GetXAxisCollision() const {return (mPositions[1] - mPositions[0]).normalized();}
-    QVector3D GetOtherXCorner() const {return mPositions[1];}
+    QVector3D Getbb() const {return GetCorner(0);}
+    QVector3D GetBB() const {return GetCorner(6);}
 
-    QVector3D GetYAxisCollision() const {return (mPositions[5] - mPositions[0]).normalized();}
-    QVector3D GetOtherYCorner() const {return mPositions[5];}
+    QVector3D GetXAxisCollision() const {return (GetCorner(1) - GetCorner(0)).normalized();}
+    QVector3D GetYAxisCollision() const {return (GetCorner(5) - GetCorner(0)).normalized();}
+    QVector3D GetZAxisCollision() const {return (GetCorner(2) - GetCorner(0)).normalized();}
 
-    QVector3D GetZAxisCollision() const {return (mPositions[2] - mPositions[0]).normalized();}
-    QVector3D GetOtherZCorner() const {return mPositions[2];}
-
-    float GetXAxisCollisionLength() const {return (mPositions[1] - mPositions[0]).length();}
-    float GetYAxisCollisionLength() const {return (mPositions[5] - mPositions[0]).length();}
-    float GetZAxisCollisionLength() const {return (mPositions[2] - mPositions[0]).length();}
+    float GetXAxisCollisionLength() const {return (GetCorner(1) - GetCorner(0)).length();}
+    float GetYAxisCollisionLength() const {return (GetCorner(5) - GetCorner(0)).length();}
+    float GetZAxisCollisionLength() const {return (GetCorner(2) - GetCorner(0)).length();}
 public:
     CubeCollider(const Transform* _transform);
 

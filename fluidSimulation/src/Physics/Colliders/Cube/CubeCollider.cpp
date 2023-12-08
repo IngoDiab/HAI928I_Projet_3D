@@ -12,8 +12,9 @@ CubeCollider::CubeCollider(const Transform* _transform) : mParent(_transform)
 void CubeCollider::RefreshColliderTransform()
 {
     QMatrix4x4 _modelMatrix = mParent->GetModelMatrix();
+    QVector<QVector3D> _corners;
 
-    mPositions = QVector<QVector3D>() =
+    _corners = QVector<QVector3D>() =
         {
 #pragma region Face Bottom
             _modelMatrix * QVector3D(-0.5,-0.5,-0.5), //LeftBotFar 0
@@ -29,15 +30,22 @@ void CubeCollider::RefreshColliderTransform()
             _modelMatrix *QVector3D(-0.5,0.5,0.5), //LeftTopNear 7
 #pragma endregion
         };
+
+    for(uint _indexCorner = 0; _indexCorner < _corners.size(); ++_indexCorner)
+    {
+        mCorners[_indexCorner*3] = _corners[_indexCorner].x();
+        mCorners[_indexCorner*3+1] = _corners[_indexCorner].y();
+        mCorners[_indexCorner*3+2] = _corners[_indexCorner].z();
+    }
 }
 
 void CubeCollider::DrawFace(const unsigned int& _index1, const unsigned int& _index2, const unsigned int& _index3) const
 {
     glColor3f(0,0.9f,0);
     glBegin(GL_LINE_LOOP);
-    glVertex3f(mPositions[_index1].x(), mPositions[_index1].y(), mPositions[_index1].z());
-    glVertex3f(mPositions[_index2].x(), mPositions[_index2].y(), mPositions[_index2].z());
-    glVertex3f(mPositions[_index3].x(), mPositions[_index3].y(), mPositions[_index3].z());
+    glVertex3f(mCorners[_index1*3], mCorners[_index1*3+1], mCorners[_index1*3+2]);
+    glVertex3f(mCorners[_index2*3], mCorners[_index2*3+1], mCorners[_index2*3+2]);
+    glVertex3f(mCorners[_index3*3], mCorners[_index3*3+1], mCorners[_index3*3+2]);
     glEnd();
 }
 
@@ -62,23 +70,23 @@ void CubeCollider::Render() const
     DrawFace(3,1,4); //Right
     DrawFace(3,4,6); //Right
 
-    glLineWidth(12);
-    glColor3f(1,0,0);
-    glBegin(GL_LINES);
-    glVertex3f(mPositions[0].x(), mPositions[0].y(), mPositions[0].z());
-    glVertex3f((mPositions[0]+GetXAxisCollision()).x(), (mPositions[0]+GetXAxisCollision()).y(), (mPositions[0]+GetXAxisCollision()).z());
-    glEnd();
-    glColor3f(0,1,0);
-    glBegin(GL_LINES);
-    glVertex3f(mPositions[0].x(), mPositions[0].y(), mPositions[0].z());
-    glVertex3f((mPositions[0]+GetYAxisCollision()).x(), (mPositions[0]+GetYAxisCollision()).y(), (mPositions[0]+GetYAxisCollision()).z());
-    glEnd();
-    glColor3f(0,0,1);
-    glBegin(GL_LINES);
-    glVertex3f(mPositions[0].x(), mPositions[0].y(), mPositions[0].z());
-    glVertex3f((mPositions[0]+GetZAxisCollision()).x(), (mPositions[0]+GetZAxisCollision()).y(), (mPositions[0]+GetZAxisCollision()).z());
-    glEnd();
-    glLineWidth(1);
+//    glLineWidth(12);
+//    glColor3f(1,0,0);
+//    glBegin(GL_LINES);
+//    glVertex3f(mPositions[0].x(), mPositions[0].y(), mPositions[0].z());
+//    glVertex3f((mPositions[0]+GetXAxisCollision()).x(), (mPositions[0]+GetXAxisCollision()).y(), (mPositions[0]+GetXAxisCollision()).z());
+//    glEnd();
+//    glColor3f(0,1,0);
+//    glBegin(GL_LINES);
+//    glVertex3f(mPositions[0].x(), mPositions[0].y(), mPositions[0].z());
+//    glVertex3f((mPositions[0]+GetYAxisCollision()).x(), (mPositions[0]+GetYAxisCollision()).y(), (mPositions[0]+GetYAxisCollision()).z());
+//    glEnd();
+//    glColor3f(0,0,1);
+//    glBegin(GL_LINES);
+//    glVertex3f(mPositions[0].x(), mPositions[0].y(), mPositions[0].z());
+//    glVertex3f((mPositions[0]+GetZAxisCollision()).x(), (mPositions[0]+GetZAxisCollision()).y(), (mPositions[0]+GetZAxisCollision()).z());
+//    glEnd();
+//    glLineWidth(1);
 
     glEnable(GL_LIGHTING);
 }

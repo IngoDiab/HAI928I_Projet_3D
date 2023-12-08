@@ -12,7 +12,7 @@ class CubeCollider;
 class Fluid
 {
     //Particles
-    unsigned int mNbParticles = 0;
+    unsigned int mNbParticles = NB_PARTICLES;
     QVector<ParticleComputableData> mParticleComputableData;
 
     //Physic
@@ -34,15 +34,16 @@ class Fluid
     Grid* mGrid = nullptr;
     ShaderProgram* mComputeShaderGrid = nullptr;
     OGL_Buffer mVoxelsBuffer = OGL_Buffer(QOpenGLBuffer::VertexBuffer);
+    OGL_Buffer mCollidersBuffer = OGL_Buffer(QOpenGLBuffer::VertexBuffer);
 
 public:
-    Fluid(unsigned int _nbParticles);
+    Fluid();
     ~Fluid();
 
 public:
     void Collisions();
     bool Detection(const QVector3D& _position, const CubeCollider& _collider);
-    void Resolution(ParticleComputableData& _particle, const CubeCollider& _collider);
+    float Resolution(ParticleComputableData& _particle, const CubeCollider& _collider);
     void UpdateFluid(float _deltaTime, unsigned int _maxWorkGroupX, unsigned short _maxWorkGroupY, unsigned short _maxWorkGroupZ);
     void Render(const GLfloat* _projectionMatrix, const GLfloat* _viewMatrix) const;
     QVector3D Center() const {return QVector3D(0,0,0);} //CAN'T CENTER BECAUSE GRID IS NOT DISPLAYING WHERE IT SHOULD

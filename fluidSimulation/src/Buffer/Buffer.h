@@ -44,6 +44,7 @@ class OGL_Buffer : protected QOpenGLExtraFunctions
 template <typename BufferData>
 void OGL_Buffer::CopyDataToBuffer(const QVector<BufferData>& _data)
 {
+    if(_data.size() <= 0) return;
     BindBuffer();
     mBuffer.allocate(&_data[0], _data.size() * sizeof(BufferData));
 }

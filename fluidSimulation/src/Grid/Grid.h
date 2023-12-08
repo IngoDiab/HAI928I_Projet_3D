@@ -22,14 +22,16 @@ class CubeCollider;
 
 struct Voxel
 {
-    float mbbX, mbbY, mbbZ = 0;
+    float mbbX = 0, mbbY = 0, mbbZ = 0;
 
-    float mBBX, mBBY, mBBZ = 0;
+    float mBBX = 0, mBBY = 0, mBBZ = 0;
 
-    uint mAllParticles[NB_PARTICLES];
+    float mCorners[24] = { 0 };
+
+    uint mAllParticles[MAX_PARTICLES_PER_VOXEL];
     uint mNbParticles = 0;
 
-    uint mCubeCollider[10];
+    uint mCubeCollider[MAX_CUBE_COLLIDERS_PER_VOXEL];
     uint mNbCubeCollider = 0;
 
     Voxel(){}
@@ -50,32 +52,32 @@ struct Voxel
 
 class Grid
 {
-    uint mNbVoxelsPerSide = 0, mNbVoxels = 0;
+    uint mNbVoxelsPerSide = 10, mNbVoxels = 0;
     float mOffset = .1;
     float mStep[3] = {0,0,0};
     QVector3D mbb = QVector3D(), mBB = QVector3D();
     QVector<Voxel> mAllVoxels = QVector<Voxel>();
-    QVector<QVector<QVector3D>> mCorners = QVector<QVector<QVector3D>>();
 
 public:
     QVector<Voxel> const & GetAllVoxels() const {return mAllVoxels;}
-    QVector<QVector3D> GetCorners(int _index) const {return mCorners[_index];}
     Voxel& GetVoxel(uint _index) {return mAllVoxels[_index];}
     void SetAllVoxels(const QVector<Voxel>& _voxelsProcessed) {mAllVoxels = _voxelsProcessed;}
 
     uint GetNbVoxels() const {return mAllVoxels.size();}
+    uint GetSize() const {return mNbVoxelsPerSide;}
     float GetStep(ushort _index) const {return mStep[_index];}
     float Getbb(ushort _index) const {return mbb[_index];}
 
 public:
     Grid();
-    Grid(const QVector3D& _bb, const QVector3D& _BB, unsigned int _nbVoxelPerSide);
+    Grid(const QVector3D& _bb, const QVector3D& _BB);
 
 public:
-    void GenerateBoundingBoxGrid(const QVector3D& _bb, const QVector3D& _BB, unsigned int _nbVoxelPerSide);
+    void GenerateBoundingBoxGrid(const QVector3D& _bb, const QVector3D& _BB);
+    void GenerateCorners();
     void DrawGrid();
-    void DisplayVoxel(const QVector<QVector3D>& corners) const;
-    void DrawFace(const unsigned int& _index1, const unsigned int& _index2, const unsigned int& _index3, const unsigned int& _index4, const QVector<QVector3D>& corners) const;
+    void DisplayVoxel(const float* corners) const;
+    void DrawFace(const unsigned int& _index1, const unsigned int& _index2, const unsigned int& _index3, const unsigned int& _index4, const float* corners) const;
     uint GridCoordToLinearCoord(uint _i, uint _j, uint _k) const;
     uint GridCoordToLinearCoord(const QVector3D& _position) const;
     QVector3D XYZCoordToGridCoord(const QVector3D& _position) const;
