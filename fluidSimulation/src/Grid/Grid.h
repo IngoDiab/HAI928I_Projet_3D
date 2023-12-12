@@ -28,10 +28,10 @@ struct Voxel
 
     float mCorners[24] = { 0 };
 
-    uint mAllParticles[MAX_PARTICLES_PER_VOXEL];
+    //uint mAllParticles[MAX_PARTICLES_PER_VOXEL];
     uint mNbParticles = 0;
 
-    uint mCubeCollider[MAX_CUBE_COLLIDERS_PER_VOXEL];
+    //uint mCubeCollider[MAX_CUBE_COLLIDERS_PER_VOXEL];
     uint mNbCubeCollider = 0;
 
     Voxel(){}
@@ -52,14 +52,22 @@ struct Voxel
 
 class Grid
 {
-    uint mNbVoxelsPerSide = 10, mNbVoxels = 0;
+    bool mDrawGrid = true;
+    uint mNbVoxelsPerSide = 4, mNbVoxels = 0;
     float mOffset = .1;
     float mStep[3] = {0,0,0};
     QVector3D mbb = QVector3D(), mBB = QVector3D();
     QVector<Voxel> mAllVoxels = QVector<Voxel>();
+    QVector<uint> mAllVoxelsParticlesIndices = QVector<uint>();
+    QVector<uint> mAllVoxelsCubeCollidersIndices = QVector<uint>();
 
 public:
     QVector<Voxel> const & GetAllVoxels() const {return mAllVoxels;}
+    QVector<Voxel>& GetAllVoxels() {return mAllVoxels;}
+    QVector<uint> const & GetAllVoxelsParticlesIndices() const {return mAllVoxelsParticlesIndices;}
+    QVector<uint>& GetAllVoxelsParticlesIndices() {return mAllVoxelsParticlesIndices;}
+    QVector<uint> const & GetAllVoxelsCubeCollidersIndices() const {return mAllVoxelsCubeCollidersIndices;}
+    QVector<uint>& GetAllVoxelsCubeCollidersIndices() {return mAllVoxelsCubeCollidersIndices;}
     Voxel& GetVoxel(uint _index) {return mAllVoxels[_index];}
     void SetAllVoxels(const QVector<Voxel>& _voxelsProcessed) {mAllVoxels = _voxelsProcessed;}
 
@@ -70,12 +78,11 @@ public:
 
 public:
     Grid();
-    Grid(const QVector3D& _bb, const QVector3D& _BB);
 
 public:
     void GenerateBoundingBoxGrid(const QVector3D& _bb, const QVector3D& _BB);
     void GenerateCorners();
-    void DrawGrid();
+    void DrawGrid() const;
     void DisplayVoxel(const float* corners) const;
     void DrawFace(const unsigned int& _index1, const unsigned int& _index2, const unsigned int& _index3, const unsigned int& _index4, const float* corners) const;
     uint GridCoordToLinearCoord(uint _i, uint _j, uint _k) const;

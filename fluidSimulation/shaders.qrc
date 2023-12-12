@@ -4,5 +4,7 @@
         <file>src/shaders/fragment_shader.glsl</file>
         <file>src/shaders/compute_shader_forces.glsl</file>
 	<file>src/shaders/compute_shader_grid.glsl</file>
+	<file>src/shaders/particle_vertex_shader.glsl</file>
+	<file>src/shaders/particle_fragment_shader.glsl</file>
     </qresource>
 </RCC>

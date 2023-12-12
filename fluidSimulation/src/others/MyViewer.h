@@ -51,6 +51,7 @@ class MyViewer : public QGLViewer, protected QOpenGLExtraFunctions
     chrono::time_point<chrono::high_resolution_clock> mPreviousFrame = chrono::high_resolution_clock::now();
     chrono::time_point<chrono::high_resolution_clock> mCurrentFrame;
     double mDeltaTime = 0;
+    bool mPause = true;
 
     //Obstacles
     PhysicManager mPhysicManager;
@@ -60,9 +61,8 @@ class MyViewer : public QGLViewer, protected QOpenGLExtraFunctions
     Fluid* mFluid = nullptr;
 
     //Threads
-    int mMaxWorkGroupX = 0;
-    int mMaxWorkGroupY = 0;
-    int mMaxWorkGroupZ = 0;
+    int mMaxWorkGroup[3] = { 0 };
+    int mWorkGroupSize[3] = { 0 };
 
     //Controls
     QWidget * controls;
@@ -124,14 +124,22 @@ public :
         _viewMatrix.lookAt(_cameraPosition, mFluid->Center(), _cameraUp);
         GLfloat* _viewMatrixF = _viewMatrix.data();
 
-        if (mFluid)
-        {
-            mFluid->UpdateFluid(mDeltaTime, mMaxWorkGroupX, mMaxWorkGroupY, mMaxWorkGroupZ);
-            mFluid->Render(_projectionMatrixF, _viewMatrixF);
-        }
+        if(!mPause) mFluid->UpdateFluid(mDeltaTime);
+        mFluid->Render(_projectionMatrixF, _viewMatrixF);
 
-        for(const Container* _container : mContainers)
-            _container->Render(_projectionMatrixF, _viewMatrixF);
+        mFluid->GetGrid()->DrawGrid();
+
+        mContainers[0]->Render(_projectionMatrixF, _viewMatrixF);
+        mContainers[1]->Render(_projectionMatrixF, _viewMatrixF);
+
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        mContainers[3]->Render(_projectionMatrixF, _viewMatrixF);
+        mContainers[4]->Render(_projectionMatrixF, _viewMatrixF);
+        mContainers[2]->Render(_projectionMatrixF, _viewMatrixF);
+
+        glDisable(GL_BLEND);
 
         update();
     }
@@ -176,8 +184,8 @@ public :
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LEQUAL);
 
-//        glEnable(GL_CULL_FACE);
-//        glCullFace(GL_BACK);
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
 
         glEnable(GL_CLIP_PLANE0);
 
@@ -192,20 +200,47 @@ public :
 
         mFluid = new Fluid();
 
-        for(uint i = 0; i < mContainers.size(); ++i)
-        {
-            Container* _container =new Container();
-            _container->GetTransform().SetWorldRotation(QVector3D(0,0,0));
-            _container->GetCollider()->RefreshColliderTransform();
-            mContainers[i] = _container;
-        }
 
+        //Container
+        for(uint i = 0; i < mContainers.size(); ++i)
+            mContainers[i] = new Container();
+
+        mContainers[0]->GetTransform().SetWorldPosition(QVector3D(0,0,0));
+        mContainers[0]->GetTransform().SetWorldScale(QVector3D(25,1,25));
+        mContainers[0]->GetCollider()->RefreshColliderTransform();
+
+        mContainers[1]->GetTransform().SetWorldRotation(QVector3D(90,0,0));
+        mContainers[1]->GetTransform().SetWorldPosition(QVector3D(0,7,-12.5f));
+        mContainers[1]->GetTransform().SetWorldScale(QVector3D(25,1,15));
+        mContainers[1]->GetCollider()->RefreshColliderTransform();
+
+        mContainers[2]->GetTransform().SetWorldRotation(QVector3D(90,0,0));
+        mContainers[2]->GetTransform().SetWorldPosition(QVector3D(0,7,12.5f));
+        mContainers[2]->GetTransform().SetWorldScale(QVector3D(25,1,15));
+        mContainers[2]->GetCollider()->RefreshColliderTransform();
+
+        mContainers[3]->GetTransform().SetWorldRotation(QVector3D(0,90,90));
+        mContainers[3]->GetTransform().SetWorldPosition(QVector3D(12.5f,7,0));
+        mContainers[3]->GetTransform().SetWorldScale(QVector3D(25,1,15));
+        mContainers[3]->GetCollider()->RefreshColliderTransform();
+
+        mContainers[4]->GetTransform().SetWorldRotation(QVector3D(0,90,90));
+        mContainers[4]->GetTransform().SetWorldPosition(QVector3D(-12.5f,7,0));
+        mContainers[4]->GetTransform().SetWorldScale(QVector3D(25,1,15));
+        mContainers[4]->GetCollider()->RefreshColliderTransform();
+        ///
+
+        mFluid->Initialize();
 
         //Get max workGroups
         QOpenGLExtraFunctions _functions = QOpenGLExtraFunctions(QOpenGLContext::currentContext());
-        _functions.glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, &mMaxWorkGroupX);
-        _functions.glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 1, &mMaxWorkGroupY);
-        _functions.glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 2, &mMaxWorkGroupZ);
+        _functions.glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, &mMaxWorkGroup[0]);
+        _functions.glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 1, &mMaxWorkGroup[1]);
+        _functions.glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 2, &mMaxWorkGroup[2]);
+
+        _functions.glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 0, &mWorkGroupSize[0]);
+        _functions.glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 1, &mWorkGroupSize[1]);
+        _functions.glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 2, &mWorkGroupSize[2]);
     }
 
     QString helpString() const {
@@ -234,6 +269,9 @@ public :
     void keyPressEvent( QKeyEvent * event ) {
         if( event->key() == Qt::Key_H ) {
             help();
+        }
+        else if( event->key() == Qt::Key_Space ) {
+            mPause = !mPause;
         }
         else if( event->key() == Qt::Key_T ) {
             if( event->modifiers() & Qt::CTRL )

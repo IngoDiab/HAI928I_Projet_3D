@@ -7,8 +7,7 @@
 Container::Container()
 {
     mMesh = new Cube();
-    mTransform.SetWorldScale(QVector3D(30,1,30));
-    mRenderShader = new ShaderProgram("src/shaders/vertex_shader.glsl", "src/shaders/fragment_shader.glsl");
+    mContainerShader = new ShaderProgram("src/shaders/vertex_shader.glsl", "src/shaders/fragment_shader.glsl");
     mCollider = new CubeCollider(&mTransform);
 }
 
@@ -20,14 +19,14 @@ Container::~Container()
 void Container::Render(const GLfloat* _projectionMatrix, const GLfloat* _viewMatrix) const
 {
     //Shader
-    mRenderShader->BindProgram();
+    mContainerShader->BindProgram();
 
     //View Projection matrix
-    mRenderShader->SendMVP(mTransform.GetModelMatrix().data(), _viewMatrix, _projectionMatrix);
+    mContainerShader->SendMVP(mTransform.GetModelMatrix().data(), _viewMatrix, _projectionMatrix);
     mMesh->DrawMesh();
 
     //Shader
-    mRenderShader->UnbindProgram();
+    mContainerShader->UnbindProgram();
 
     mCollider->Render();
 }

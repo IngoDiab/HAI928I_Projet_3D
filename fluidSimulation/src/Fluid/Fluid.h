@@ -16,11 +16,11 @@ class Fluid
     QVector<ParticleComputableData> mParticleComputableData;
 
     //Physic
-    int mFPSFluid = 60; //broken at 120
+    int mFPSFluid = 30;
     float mTimer = 0;
 
     //Display
-    ShaderProgram* mRenderShader = nullptr;
+    ShaderProgram* mFluidShader = nullptr;
     Particle* mParticleTemplateDisplay = nullptr;
     bool mDisplayParticles = true;
     float mScaleParticle = 1;
@@ -34,23 +34,29 @@ class Fluid
     Grid* mGrid = nullptr;
     ShaderProgram* mComputeShaderGrid = nullptr;
     OGL_Buffer mVoxelsBuffer = OGL_Buffer(QOpenGLBuffer::VertexBuffer);
+    OGL_Buffer mVoxelsIndicesParticlesBuffer = OGL_Buffer(QOpenGLBuffer::VertexBuffer);
     OGL_Buffer mCollidersBuffer = OGL_Buffer(QOpenGLBuffer::VertexBuffer);
+    OGL_Buffer mVoxelsIndicesCollidersBuffer = OGL_Buffer(QOpenGLBuffer::VertexBuffer);
+
+public:
+    const Grid* GetGrid() const {return mGrid;}
 
 public:
     Fluid();
     ~Fluid();
 
 public:
+    void Initialize();
     void Collisions();
     bool Detection(const QVector3D& _position, const CubeCollider& _collider);
     float Resolution(ParticleComputableData& _particle, const CubeCollider& _collider);
-    void UpdateFluid(float _deltaTime, unsigned int _maxWorkGroupX, unsigned short _maxWorkGroupY, unsigned short _maxWorkGroupZ);
+    void UpdateFluid(float _deltaTime);
     void Render(const GLfloat* _projectionMatrix, const GLfloat* _viewMatrix) const;
     QVector3D Center() const {return QVector3D(0,0,0);} //CAN'T CENTER BECAUSE GRID IS NOT DISPLAYING WHERE IT SHOULD
 
 private:
-    void RefreshGrid(unsigned int _maxWorkGroupX, unsigned short _maxWorkGroupY, unsigned short _maxWorkGroupZ);
-    void ApplyForceOnCS(unsigned int _maxWorkGroupX, unsigned short _maxWorkGroupY, unsigned short _maxWorkGroupZ);
+    void RefreshGrid();
+    void ApplyForceOnCS();
     void LoadShader();
     void ComputeCenter();
 };

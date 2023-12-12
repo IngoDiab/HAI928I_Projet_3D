@@ -29,8 +29,9 @@ class OGL_Buffer : protected QOpenGLExtraFunctions
 
        template <typename BufferData>
        void CopyDataToBuffer(const QVector<BufferData>& _data);
+
        template <typename BufferData>
-       BufferData* RetrieveFromComputeShader();
+       bool ReadFromBuffer(int _offset, BufferData* _dataOut, int _nbBytes);
 
        void DrawBuffer(const unsigned int _attribute, const int _size, const unsigned int _type, const unsigned char _normalized = 0, const int _stride = 0, const int _offsetBegin = 0);
        void DrawBufferIndices(const unsigned int _mode, const int _size, const int _offsetBegin = 0);
@@ -50,10 +51,9 @@ void OGL_Buffer::CopyDataToBuffer(const QVector<BufferData>& _data)
 }
 
 template <typename BufferData>
-BufferData* OGL_Buffer::RetrieveFromComputeShader()
+bool OGL_Buffer::ReadFromBuffer(int _offset, BufferData* _dataOut, int _nbBytes)
 {
-    BufferData* _retrievedData = static_cast<BufferData*>(Map(QOpenGLBuffer::ReadOnly));
-    Unmap();
-    return _retrievedData;
+    BindBuffer();
+    return mBuffer.read(_offset, _dataOut, _nbBytes);
 }
 #endif // OGL_BUFFER_H

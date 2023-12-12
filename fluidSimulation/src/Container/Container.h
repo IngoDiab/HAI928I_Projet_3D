@@ -10,7 +10,7 @@ class ShaderProgram;
 
 class Container
 {
-    ShaderProgram* mRenderShader = nullptr;
+    ShaderProgram* mContainerShader = nullptr;
     Cube* mMesh = nullptr;
     CubeCollider* mCollider = nullptr;
     Transform mTransform = Transform();

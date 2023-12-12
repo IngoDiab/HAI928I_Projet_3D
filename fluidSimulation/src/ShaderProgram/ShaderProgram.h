@@ -31,6 +31,7 @@ class ShaderProgram : protected QOpenGLExtraFunctions
 
     //Particles
     int mNbParticuleLocation;
+    int mDensityParticleLocation;
 
     //Cube colliders
     int mNbCubeCollidersLocation;
@@ -44,6 +45,7 @@ public:
     SHADER_TYPE GetType() const {return mType;}
     int GetDeltaTimeLocation() const {return mDeltaTimeLocation;}
     int GetNbParticuleLocation() const {return mNbParticuleLocation;}
+    int GetDensityParticleLocation() const {return mDensityParticleLocation;}
     int GetNbCubeCollidersLocation() const {return mNbCubeCollidersLocation;}
     int GetGridSizeLocation() const {return mGridSizeLocation;}
     int GetStepLocation(ushort _index) const {return mStepLocation[_index];}
