@@ -7,7 +7,7 @@
 Container::Container()
 {
     mMesh = new Cube();
-    mContainerShader = new ShaderProgram("src/shaders/vertex_shader.glsl", "src/shaders/fragment_shader.glsl");
+    mContainerShader = new ShaderProgram("src/shaders/Vertex/vertex_shader.glsl", "src/shaders/Fragments/fragment_shader.glsl");
     mCollider = new CubeCollider(&mTransform);
 }
 

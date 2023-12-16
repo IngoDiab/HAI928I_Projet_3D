@@ -9,6 +9,8 @@
 
 Fluid::Fluid()
 {
+    mContext = QOpenGLExtraFunctions(QOpenGLContext::currentContext());
+
     mGrid = new Grid();
 
     mParticleTemplateDisplay = new Particle();
@@ -24,9 +26,9 @@ Fluid::Fluid()
 
     for(ParticleComputableData& _particleData : mParticleComputableData)
     {
-        _particleData.mPositionX = rand()/(float)RAND_MAX *15. -7.5;
-        _particleData.mPositionY = rand()/(float)RAND_MAX *20. +20;
-        _particleData.mPositionZ = rand()/(float)RAND_MAX *15. -7.5;
+        _particleData.mPositionX = rand()/(float)RAND_MAX *8. -4;
+        _particleData.mPositionY = rand()/(float)RAND_MAX *10. +2;
+        _particleData.mPositionZ = rand()/(float)RAND_MAX *8. -4;
     }
 
     ComputeCenter();
@@ -39,7 +41,11 @@ Fluid::~Fluid()
 {
     delete mGrid;
     delete mFluidShader;
-    delete mComputeShaderForces;
+    delete mComputeShaderGravity;
+    delete mComputeShaderDensityPressure;
+    delete mComputeShaderGradient;
+    delete mComputeShaderVelocity;
+    delete mComputeShaderCollisions;
     delete mComputeShaderGrid;
 }
 
@@ -54,7 +60,26 @@ void Fluid::Initialize()
     mCollidersBuffer.CopyDataToBuffer(_cubeColliders);
 }
 
-void Fluid::Collisions()
+void Fluid::UpdateFluid(float _deltaTime)
+{
+    mTimer+=_deltaTime;
+    float _dtPhysic = 1.0f/(float)mFPSFluid;
+    if(mTimer < _dtPhysic) return;
+    mTimer = 0;
+
+    Gravity();
+    Density_Pressure();
+    Gradient();
+    Velocity();
+    Collisions();
+    RefreshGrid();
+
+    //ApplyForceOnCS();
+    //Collisions();
+    //RefreshGrid();
+}
+
+/*void Fluid::Collisions()
 {
     QVector<CubeCollider*> _allObstacles = PhysicManager::Instance()->GetCubeColliders();
     QVector<Voxel> _voxels = mGrid->GetAllVoxels();
@@ -185,19 +210,7 @@ float Fluid::Resolution(ParticleComputableData& _particle, const CubeCollider& _
     _particle.mPositionZ = _newPos.z();
 
     _particle.mVelocityY = -_particle.mVelocityY/2;
-}
-
-void Fluid::UpdateFluid(float _deltaTime)
-{
-    mTimer+=_deltaTime;
-    float _dtPhysic = 1.0f/(float)mFPSFluid;
-    if(mTimer < _dtPhysic) return;
-    mTimer = 0;
-
-    ApplyForceOnCS();
-    //Collisions();
-    RefreshGrid();
-}
+}*/
 
 void Fluid::Render(const GLfloat* _projectionMatrix, const GLfloat* _viewMatrix) const
 {
@@ -212,12 +225,13 @@ void Fluid::Render(const GLfloat* _projectionMatrix, const GLfloat* _viewMatrix)
     mFluidShader->SendVP(_viewMatrix, _projectionMatrix);
     for(int i = 0; i < mParticleComputableData.size(); ++i)
     {
-        if(i%100 !=0) continue;
+        //if(i%100 !=0) continue;
         const ParticleComputableData& _particleData = mParticleComputableData[i];
         mParticleTemplateDisplay->GetTransform().SetWorldPosition(QVector3D(_particleData.mPositionX, _particleData.mPositionY, _particleData.mPositionZ));
         mParticleTemplateDisplay->SetVelocity(QVector3D(_particleData.mVelocityX, _particleData.mVelocityY, _particleData.mVelocityZ));
 
         _functions.glUniform1f(mFluidShader->GetDensityParticleLocation(), mParticleComputableData[i].mDensity);
+        _functions.glUniform1f(mFluidShader->GetPressureParticleLocation(), mParticleComputableData[i].mPressure);
 
         //Model matrix
         GLfloat* _modelMatrixF = mParticleTemplateDisplay->GetTransform().GetModelMatrix().data();
@@ -231,6 +245,128 @@ void Fluid::Render(const GLfloat* _projectionMatrix, const GLfloat* _viewMatrix)
 
     //Shader
     mFluidShader->UnbindProgram();
+}
+
+void Fluid::Gravity()
+{
+    //Bind
+    mComputeShaderGravity->BindProgram();
+
+    //Uniforms
+    mContext.glUniform1ui(mComputeShaderGravity->GetNbParticuleLocation(), mParticleComputableData.size());
+    mContext.glUniform1f(mComputeShaderGravity->GetDeltaTimeLocation(), 1.f/(float)mFPSFluid);
+
+    //Bind buffer
+    mParticlesBuffer.BindBase(3);
+
+    //Dispatch
+    mComputeShaderGravity->ProcessComputeShader(NB_PARTICLES,1,1);
+
+    //Unbind
+    mComputeShaderGravity->UnbindProgram();
+}
+
+void Fluid::Density_Pressure()
+{
+    //Bind
+    mComputeShaderDensityPressure->BindProgram();
+
+    //Uniforms
+    mContext.glUniform1ui(mComputeShaderDensityPressure->GetNbParticuleLocation(), mParticleComputableData.size());
+    mContext.glUniform1f(mComputeShaderDensityPressure->GetDeltaTimeLocation(), 1.f/(float)mFPSFluid);
+    mContext.glUniform1ui(mComputeShaderDensityPressure->GetGridSizeLocation(), mGrid->GetSize());
+    for(ushort i = 0; i<3; ++i)
+    {
+        mContext.glUniform1f(mComputeShaderDensityPressure->GetStepLocation(i), mGrid->GetStep(i));
+        mContext.glUniform1f(mComputeShaderDensityPressure->GetbbLocation(i), mGrid->Getbb(i));
+    }
+
+    //Bind buffer
+    mVoxelsBuffer.BindBase(0);
+    mVoxelsIndicesParticlesBuffer.BindBase(1);
+    mParticlesBuffer.BindBase(3);
+
+    //Dispatch
+    mComputeShaderDensityPressure->ProcessComputeShader(NB_PARTICLES,1,1);
+
+    //Unbind
+    mComputeShaderDensityPressure->UnbindProgram();
+}
+
+void Fluid::Gradient()
+{
+    //Bind
+    mComputeShaderGradient->BindProgram();
+
+    //Uniforms
+    mContext.glUniform1ui(mComputeShaderGradient->GetNbParticuleLocation(), mParticleComputableData.size());
+    mContext.glUniform1f(mComputeShaderGradient->GetDeltaTimeLocation(), 1.f/(float)mFPSFluid);
+    mContext.glUniform1ui(mComputeShaderGradient->GetGridSizeLocation(), mGrid->GetSize());
+    for(ushort i = 0; i<3; ++i)
+    {
+        mContext.glUniform1f(mComputeShaderGradient->GetStepLocation(i), mGrid->GetStep(i));
+        mContext.glUniform1f(mComputeShaderGradient->GetbbLocation(i), mGrid->Getbb(i));
+    }
+
+    //Bind buffer
+    mVoxelsBuffer.BindBase(0);
+    mVoxelsIndicesParticlesBuffer.BindBase(1);
+    mParticlesBuffer.BindBase(3);
+
+    //Dispatch
+    mComputeShaderGradient->ProcessComputeShader(NB_PARTICLES,1,1);
+
+    //Unbind
+    mComputeShaderGradient->UnbindProgram();
+}
+
+void Fluid::Velocity()
+{
+    //Bind
+    mComputeShaderVelocity->BindProgram();
+
+    //Uniforms
+    mContext.glUniform1ui(mComputeShaderVelocity->GetNbParticuleLocation(), mParticleComputableData.size());
+    mContext.glUniform1f(mComputeShaderVelocity->GetDeltaTimeLocation(), 1.f/(float)mFPSFluid);
+
+    //Bind buffer
+    mParticlesBuffer.BindBase(3);
+
+    //Dispatch
+    mComputeShaderVelocity->ProcessComputeShader(NB_PARTICLES,1,1);
+
+    //Read processed data
+    mParticlesBuffer.ReadFromBuffer(0, &mParticleComputableData[0], NB_PARTICLES*sizeof(ParticleComputableData));
+
+    //Unbind
+    mComputeShaderVelocity->UnbindProgram();
+}
+
+void Fluid::Collisions()
+{
+    //Bind
+    mComputeShaderCollisions->BindProgram();
+
+    //Uniforms
+    mContext.glUniform1ui(mComputeShaderCollisions->GetGridSizeLocation(), mGrid->GetSize());
+    mContext.glUniform1ui(mComputeShaderCollisions->GetNbParticuleLocation(), mParticleComputableData.size());
+    for(ushort i = 0; i<3; ++i)
+    {
+        mContext.glUniform1f(mComputeShaderCollisions->GetStepLocation(i), mGrid->GetStep(i));
+        mContext.glUniform1f(mComputeShaderCollisions->GetbbLocation(i), mGrid->Getbb(i));
+    }
+
+    //Bind buffer
+    mVoxelsBuffer.BindBase(0);
+    mVoxelsIndicesCollidersBuffer.BindBase(2);
+    mParticlesBuffer.BindBase(3);
+    mCollidersBuffer.BindBase(4);
+
+    //Dispatch
+    mComputeShaderCollisions->ProcessComputeShader(NB_PARTICLES,1,1);
+
+    //Unbind
+    mComputeShaderCollisions->UnbindProgram();
 }
 
 void Fluid::RefreshGrid()
@@ -317,47 +453,55 @@ void Fluid::ApplyForceOnCS()
 //    }
 //    mParticlesBuffer.CopyDataToBuffer(mParticleComputableData);
 //    return;
-    if(!mComputeShaderForces || mComputeShaderForces->GetType() != SHADER_TYPE::COMPUTING) return;
+//    if(!mComputeShaderForces || mComputeShaderForces->GetType() != SHADER_TYPE::COMPUTING) return;
 
-    //Use compute shader
-    mComputeShaderForces->BindProgram();
+//    //Use compute shader
+//    mComputeShaderForces->BindProgram();
 
-    //Send uniforms
-    QOpenGLExtraFunctions _functions = QOpenGLExtraFunctions(QOpenGLContext::currentContext());
-    _functions.glUniform1f(mComputeShaderForces->GetDeltaTimeLocation(), 1.f/(float)mFPSFluid);
-    for(ushort i = 0; i<3; ++i)
-    {
-        _functions.glUniform1f(mComputeShaderForces->GetStepLocation(i), mGrid->GetStep(i));
-        _functions.glUniform1f(mComputeShaderForces->GetbbLocation(i), mGrid->Getbb(i));
-    }
-    _functions.glUniform1ui(mComputeShaderForces->GetGridSizeLocation(), mGrid->GetSize());
+//    //Get physics cube colliders
+//    QVector<CubeCollider> _cubeColliders = PhysicManager::Instance()->GetCubeCollidersData();
 
-    //Get physics cube colliders
-    QVector<CubeCollider> _cubeColliders = PhysicManager::Instance()->GetCubeCollidersData();
+//    //Send uniforms
+//    QOpenGLExtraFunctions _functions = QOpenGLExtraFunctions(QOpenGLContext::currentContext());
+//    _functions.glUniform1ui(mComputeShaderGrid->GetNbParticuleLocation(), mParticleComputableData.size());
+//    _functions.glUniform1ui(mComputeShaderGrid->GetNbCubeCollidersLocation(), _cubeColliders.size());
+//    _functions.glUniform1f(mComputeShaderForces->GetDeltaTimeLocation(), 1.f/(float)mFPSFluid);
+//    for(ushort i = 0; i<3; ++i)
+//    {
+//        _functions.glUniform1f(mComputeShaderForces->GetStepLocation(i), mGrid->GetStep(i));
+//        _functions.glUniform1f(mComputeShaderForces->GetbbLocation(i), mGrid->Getbb(i));
+//    }
+//    _functions.glUniform1ui(mComputeShaderForces->GetGridSizeLocation(), mGrid->GetSize());
 
-    //Copy data
-    mVoxelsBuffer.CopyDataToBuffer(mGrid->GetAllVoxels());
-    mVoxelsBuffer.BindBase(0);
-    mVoxelsIndicesParticlesBuffer.BindBase(1);
-    mVoxelsIndicesCollidersBuffer.BindBase(2);
-    mParticlesBuffer.BindBase(3);
-    mCollidersBuffer.BindBase(4);
+//    //Copy data
+//    mVoxelsBuffer.CopyDataToBuffer(mGrid->GetAllVoxels());
+//    mVoxelsBuffer.BindBase(0);
+//    mVoxelsIndicesParticlesBuffer.BindBase(1);
+//    mVoxelsIndicesCollidersBuffer.BindBase(2);
+//    mParticlesBuffer.BindBase(3);
+//    mCollidersBuffer.BindBase(4);
 
-    //Use compute
-    mComputeShaderForces->ProcessComputeShader(NB_PARTICLES,1,1);
+//    //Use compute
+//    mComputeShaderForces->ProcessComputeShader(NB_PARTICLES,1,1);
 
-    //Retrieve updated data from buffers
-    mParticlesBuffer.ReadFromBuffer(0, &mParticleComputableData[0], NB_PARTICLES*sizeof(ParticleComputableData));
+//    //Retrieve updated data from buffers
+//    mParticlesBuffer.ReadFromBuffer(0, &mParticleComputableData[0], NB_PARTICLES*sizeof(ParticleComputableData));
 
-    //Shader
-    mComputeShaderForces->UnbindProgram();
+//    qDebug() << mParticleComputableData[0].mPositionX;
+
+//    //Shader
+//    mComputeShaderForces->UnbindProgram();
 }
 
 void Fluid::LoadShader()
 {
-    mFluidShader = new ShaderProgram("src/shaders/particle_vertex_shader.glsl", "src/shaders/particle_fragment_shader.glsl");
-    mComputeShaderForces = new ShaderProgram("src/shaders/compute_shader_forces.glsl");
-    mComputeShaderGrid = new ShaderProgram("src/shaders/compute_shader_grid.glsl");
+    mFluidShader = new ShaderProgram("src/shaders/Vertex/particle_vertex_shader.glsl", "src/shaders/Fragments/particle_fragment_shader.glsl");
+    mComputeShaderGravity = new ShaderProgram("src/shaders/Computes/compute_shader_gravity.glsl");
+    mComputeShaderDensityPressure = new ShaderProgram("src/shaders/Computes/compute_shader_density_pressure.glsl");
+    mComputeShaderGradient = new ShaderProgram("src/shaders/Computes/compute_shader_gradient.glsl");
+    mComputeShaderVelocity = new ShaderProgram("src/shaders/Computes/compute_shader_velocity.glsl");
+    mComputeShaderCollisions = new ShaderProgram("src/shaders/Computes/compute_shader_collisions.glsl");
+    mComputeShaderGrid = new ShaderProgram("src/shaders/Computes/compute_shader_grid.glsl");
 }
 
 void Fluid::ComputeCenter()

@@ -1,10 +1,14 @@
 <RCC>
     <qresource prefix="/">
-        <file>src/shaders/vertex_shader.glsl</file>
-        <file>src/shaders/fragment_shader.glsl</file>
-        <file>src/shaders/compute_shader_forces.glsl</file>
-	<file>src/shaders/compute_shader_grid.glsl</file>
-	<file>src/shaders/particle_vertex_shader.glsl</file>
-	<file>src/shaders/particle_fragment_shader.glsl</file>
+        <file>src/shaders/Vertex/vertex_shader.glsl</file>
+        <file>src/shaders/Fragments/fragment_shader.glsl</file>
+        <file>src/shaders/Computes/compute_shader_gradient.glsl</file>
+	<file>src/shaders/Computes/compute_shader_density_pressure.glsl</file>
+	<file>src/shaders/Computes/compute_shader_grid.glsl</file>
+	<file>src/shaders/Computes/compute_shader_collisions.glsl</file>
+	<file>src/shaders/Computes/compute_shader_gravity.glsl</file>
+	<file>src/shaders/Computes/compute_shader_velocity.glsl</file>
+	<file>src/shaders/Vertex/particle_vertex_shader.glsl</file>
+	<file>src/shaders/Fragments/particle_fragment_shader.glsl</file>
     </qresource>
 </RCC>

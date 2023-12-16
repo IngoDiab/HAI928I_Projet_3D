@@ -53,7 +53,7 @@ struct Voxel
 class Grid
 {
     bool mDrawGrid = true;
-    uint mNbVoxelsPerSide = 4, mNbVoxels = 0;
+    uint mNbVoxelsPerSide = 5, mNbVoxels = 0;
     float mOffset = .1;
     float mStep[3] = {0,0,0};
     QVector3D mbb = QVector3D(), mBB = QVector3D();
