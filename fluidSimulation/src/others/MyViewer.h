@@ -36,6 +36,7 @@
 using namespace std;
 
 #include <cmath>
+#include <pthread.h>
 
 #include "../Fluid/Fluid.h"
 #include "../Container/Container.h"
@@ -55,7 +56,9 @@ class MyViewer : public QGLViewer, protected QOpenGLExtraFunctions
 
     //Obstacles
     PhysicManager mPhysicManager;
+    QVector3D mContainerPos = QVector3D();
     QVector<Container*> mContainers = QVector<Container*>(NB_CUBE_COLLIDERS, nullptr);
+    Container* mObject = nullptr;
 
     //Fluid
     Fluid* mFluid = nullptr;
@@ -121,19 +124,37 @@ public :
         _viewMatrix.setToIdentity();
         QVector3D _cameraPosition = QVector3D(_camera->position().x, _camera->position().y, _camera->position().z);
         QVector3D _cameraUp = QVector3D(_camera->upVector().x, _camera->upVector().y, _camera->upVector().z);
-        _viewMatrix.lookAt(_cameraPosition, mFluid->Center(), _cameraUp);
+        _viewMatrix.lookAt(_cameraPosition, QVector3D(0,0,0), _cameraUp);
         GLfloat* _viewMatrixF = _viewMatrix.data();
 
         if(!mPause) mFluid->UpdateFluid(mDeltaTime);
-        mFluid->Render(_projectionMatrixF, _viewMatrixF);
+        mContainers[0]->GetTransform().SetWorldPosition(mContainers[0]->GetTransform().GetWorldPosition()+mContainerPos);
+        mContainers[0]->GetCollider()->RefreshColliderTransform();
+        mContainers[1]->GetTransform().SetWorldPosition(mContainers[1]->GetTransform().GetWorldPosition()+mContainerPos);
+        mContainers[1]->GetCollider()->RefreshColliderTransform();
+        mContainers[2]->GetTransform().SetWorldPosition(mContainers[2]->GetTransform().GetWorldPosition()+mContainerPos);
+        mContainers[2]->GetCollider()->RefreshColliderTransform();
+        mContainers[3]->GetTransform().SetWorldPosition(mContainers[3]->GetTransform().GetWorldPosition()+mContainerPos);
+        mContainers[3]->GetCollider()->RefreshColliderTransform();
+        mContainers[4]->GetTransform().SetWorldPosition(mContainers[4]->GetTransform().GetWorldPosition()+mContainerPos);
+        mContainers[4]->GetCollider()->RefreshColliderTransform();
+        mContainers[5]->GetTransform().SetWorldPosition(mContainers[5]->GetTransform().GetWorldPosition()+mContainerPos);
+        mContainers[5]->GetCollider()->RefreshColliderTransform();
+        mContainerPos = QVector3D(0,0,0);
 
         mFluid->GetGrid()->DrawGrid();
+        mFluid->GetMarchingCubeGrid()->DrawGrid();
 
         mContainers[0]->Render(_projectionMatrixF, _viewMatrixF);
         mContainers[1]->Render(_projectionMatrixF, _viewMatrixF);
+        mContainers[5]->Render(_projectionMatrixF, _viewMatrixF);
+
+        mContainers[6]->Render(_projectionMatrixF, _viewMatrixF);
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        mFluid->Render(_projectionMatrixF, _viewMatrixF);
 
         mContainers[3]->Render(_projectionMatrixF, _viewMatrixF);
         mContainers[4]->Render(_projectionMatrixF, _viewMatrixF);
@@ -169,7 +190,7 @@ public :
 
         setMouseTracking(true);// Needed for MouseGrabber.
 
-        setBackgroundColor(QColor(255,255,255));
+        setBackgroundColor(QColor(175,175,175));
 
         // Lights:
         GLTools::initLights();
@@ -206,28 +227,37 @@ public :
             mContainers[i] = new Container();
 
         mContainers[0]->GetTransform().SetWorldPosition(QVector3D(0,0,0));
-        mContainers[0]->GetTransform().SetWorldScale(QVector3D(25,1,25));
+        mContainers[0]->GetTransform().SetWorldScale(QVector3D(15,1,15));
         mContainers[0]->GetCollider()->RefreshColliderTransform();
 
         mContainers[1]->GetTransform().SetWorldRotation(QVector3D(90,0,0));
-        mContainers[1]->GetTransform().SetWorldPosition(QVector3D(0,7,-12.5f));
-        mContainers[1]->GetTransform().SetWorldScale(QVector3D(25,1,15));
+        mContainers[1]->GetTransform().SetWorldPosition(QVector3D(0,7,-7.5f));
+        mContainers[1]->GetTransform().SetWorldScale(QVector3D(15,1,15));
         mContainers[1]->GetCollider()->RefreshColliderTransform();
 
         mContainers[2]->GetTransform().SetWorldRotation(QVector3D(90,0,0));
-        mContainers[2]->GetTransform().SetWorldPosition(QVector3D(0,7,12.5f));
-        mContainers[2]->GetTransform().SetWorldScale(QVector3D(25,1,15));
+        mContainers[2]->GetTransform().SetWorldPosition(QVector3D(0,7,7.5f));
+        mContainers[2]->GetTransform().SetWorldScale(QVector3D(15,1,15));
         mContainers[2]->GetCollider()->RefreshColliderTransform();
 
         mContainers[3]->GetTransform().SetWorldRotation(QVector3D(0,90,90));
-        mContainers[3]->GetTransform().SetWorldPosition(QVector3D(12.5f,7,0));
-        mContainers[3]->GetTransform().SetWorldScale(QVector3D(25,1,15));
+        mContainers[3]->GetTransform().SetWorldPosition(QVector3D(7.5f,7,0));
+        mContainers[3]->GetTransform().SetWorldScale(QVector3D(15,1,15));
         mContainers[3]->GetCollider()->RefreshColliderTransform();
 
         mContainers[4]->GetTransform().SetWorldRotation(QVector3D(0,90,90));
-        mContainers[4]->GetTransform().SetWorldPosition(QVector3D(-12.5f,7,0));
-        mContainers[4]->GetTransform().SetWorldScale(QVector3D(25,1,15));
+        mContainers[4]->GetTransform().SetWorldPosition(QVector3D(-7.5f,7,0));
+        mContainers[4]->GetTransform().SetWorldScale(QVector3D(15,1,15));
         mContainers[4]->GetCollider()->RefreshColliderTransform();
+
+        mContainers[5]->GetTransform().SetWorldPosition(QVector3D(0,14,0));
+        mContainers[5]->GetTransform().SetWorldScale(QVector3D(15,1,15));
+        mContainers[5]->GetCollider()->RefreshColliderTransform();
+
+        //mObject = new Container();
+        mContainers[6]->GetTransform().SetWorldPosition(QVector3D(0,-30,0));
+        mContainers[6]->GetTransform().SetWorldScale(QVector3D(5,5,5));
+        mContainers[6]->GetCollider()->RefreshColliderTransform();
         ///
 
         mFluid->Initialize();
@@ -272,6 +302,24 @@ public :
         }
         else if( event->key() == Qt::Key_Space ) {
             mPause = !mPause;
+        }
+        else if( event->key() == Qt::Key_Right ) {
+            mContainerPos += 1/120.f*10*QVector3D(1,0,0);
+//            mContainers[6]->GetTransform().SetWorldPosition(mContainers[6]->GetTransform().GetWorldPosition()+1/120.f*10*QVector3D(1,0,0));
+//            mContainers[6]->GetCollider()->RefreshColliderTransform();
+        }
+        else if( event->key() == Qt::Key_Left ) {
+            mContainerPos += 1/120.f*10*QVector3D(-1,0,0);
+//            mContainers[6]->GetTransform().SetWorldPosition(mContainers[6]->GetTransform().GetWorldPosition()+1/120.f*10*QVector3D(-1,0,0));
+//            mContainers[6]->GetCollider()->RefreshColliderTransform();
+        }
+        else if( event->key() == Qt::Key_Down ) {
+            mContainers[6]->GetTransform().SetWorldPosition(mContainers[6]->GetTransform().GetWorldPosition()+1/120.f*20*QVector3D(0,-1,0));
+            mContainers[6]->GetCollider()->RefreshColliderTransform();
+        }
+        else if( event->key() == Qt::Key_Up ) {
+            mContainers[6]->GetTransform().SetWorldPosition(mContainers[6]->GetTransform().GetWorldPosition()+1/120.f*20*QVector3D(0,1,0));
+            mContainers[6]->GetCollider()->RefreshColliderTransform();
         }
         else if( event->key() == Qt::Key_T ) {
             if( event->modifiers() & Qt::CTRL )

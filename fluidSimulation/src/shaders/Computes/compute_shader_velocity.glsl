@@ -26,10 +26,6 @@ struct Particle
 
     float density;
     float pressure;
-
-    float pressureForceX;
-    float pressureForceY;
-    float pressureForceZ;
 };
 
 layout(std430, binding = 3) buffer ParticleBuffer
@@ -53,16 +49,17 @@ uint GetParticleIndex()
 void ApplyVelocityOnPosition()
 {
     uint index = GetParticleIndex();
+    Particle _particle = particles[index];
 
     //Save position as previous
-    particles[index].previousPositionX = particles[index].positionX;
-    particles[index].previousPositionY = particles[index].positionY;
-    particles[index].previousPositionZ = particles[index].positionZ;
+    particles[index].previousPositionX = _particle.positionX;
+    particles[index].previousPositionY = _particle.positionY;
+    particles[index].previousPositionZ = _particle.positionZ;
 
     //Apply velocity
-    particles[index].positionX += particles[index].velocityX * deltaTime;
-    particles[index].positionY += particles[index].velocityY * deltaTime;
-    particles[index].positionZ += particles[index].velocityZ * deltaTime;
+    particles[index].positionX += _particle.velocityX * deltaTime;
+    particles[index].positionY += _particle.velocityY * deltaTime;
+    particles[index].positionZ += _particle.velocityZ * deltaTime;
 }
 
 //////////////////////////////  MAIN //////////////////////////////

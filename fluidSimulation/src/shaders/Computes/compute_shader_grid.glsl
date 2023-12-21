@@ -5,8 +5,10 @@
 layout (local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
 
 //////////////////////////////  CONST //////////////////////////////
-const int MAX_PARTICLES = 10000;
+const int MAX_PARTICLES = 10240;
 const int MAX_CUBE_COLLIDERS = 10;
+
+const uint NB_THREADS_IN_GROUP = gl_WorkGroupSize.x * gl_WorkGroupSize.y * gl_WorkGroupSize.z;
 
 //////////////////////////////  VOXELS //////////////////////////////
 struct Voxel
@@ -62,10 +64,6 @@ struct Particle
 
     float density;
     float pressure;
-
-    float pressureForceX;
-    float pressureForceY;
-    float pressureForceZ;
 };
 
 layout(std430, binding = 3) buffer ParticleBuffer
@@ -78,6 +76,9 @@ layout(std430, binding = 3) buffer ParticleBuffer
 struct CubeCollider
 {
     int placeHolderTransform;
+    float mVelocityX;
+    float mVelocityY;
+    float mVelocityZ;
     float corners[24];
 };
 
@@ -173,11 +174,16 @@ void CreateGrid()
 
 bool IsParticleInVoxel(const Voxel _voxel, const Particle _particle)
 {
-    bool _inXaxis = _voxel.mbbX <= _particle.positionX && _particle.positionX <= _voxel.mBBX;
-    bool _inYaxis = _voxel.mbbY <= _particle.positionY && _particle.positionY <= _voxel.mBBY;
-    bool _inZaxis = _voxel.mbbZ <= _particle.positionZ && _particle.positionZ <= _voxel.mBBZ;
+    bool _inXaxis = _voxel.mbbX <= _particle.positionX && _particle.positionX < _voxel.mBBX;
+    bool _inYaxis = _voxel.mbbY <= _particle.positionY && _particle.positionY < _voxel.mBBY;
+    bool _inZaxis = _voxel.mbbZ <= _particle.positionZ && _particle.positionZ < _voxel.mBBZ;
     return _inXaxis && _inYaxis && _inZaxis;
 }
+
+layout(std430, binding = 10) buffer Test
+{
+    uint bufferPresenceParticleInVoxels[];
+};
 
 void FillVoxelWithParticles()
 {
@@ -185,14 +191,11 @@ void FillVoxelWithParticles()
     uint _index = GetVoxelThreadIndex();
     atomicExchange(voxels[_index].mNbParticles, 0);
 
-    //Get nb threads available
-    uint _threadsInGroup= gl_WorkGroupSize.x * gl_WorkGroupSize.y * gl_WorkGroupSize.z;
-
     //Synchronize all threads usefull to prevent a thread making mNbParticles = 0 if particle has been added by another thread
     barrier();
 
     //Less particles than threads or equals
-    if(nbParticles<=_threadsInGroup)
+    if(nbParticles<=NB_THREADS_IN_GROUP)
     {
         //Get thread index and return if useless or particle not in voxel
         uint _particleIndex = gl_LocalInvocationIndex;
@@ -200,16 +203,17 @@ void FillVoxelWithParticles()
         if(!IsParticleInVoxel(voxels[_index], particles[_particleIndex])) return;
 
         //Add each thread particle index and increment mNbParticles
-        //atomicExchange(voxels[_index].mAllParticles[voxels[_index].mNbParticles], _particleIndex);
-        atomicExchange(indicesParticlesVoxelsBuffer[_index*MAX_PARTICLES+voxels[_index].mNbParticles], _particleIndex);
-        atomicAdd(voxels[_index].mNbParticles,1);
+//        atomicExchange(indicesParticlesVoxelsBuffer[_index*MAX_PARTICLES+voxels[_index].mNbParticles], _particleIndex);
+//        atomicAdd(voxels[_index].mNbParticles,1);
+
+        atomicExchange(bufferPresenceParticleInVoxels[_index*MAX_PARTICLES+_particleIndex],1);
     }
 
     //More particle than thread (multiple of threads)
     else
     {
         //Get nb particles by thread available
-        uint _particlesPerThread = nbParticles/_threadsInGroup;
+        uint _particlesPerThread = nbParticles/NB_THREADS_IN_GROUP;
         //Get thread offset in all particles' table
         uint _threadOffset = _particlesPerThread*gl_LocalInvocationIndex;
 
@@ -221,10 +225,22 @@ void FillVoxelWithParticles()
             if(!IsParticleInVoxel(voxels[_index], particles[i+_threadOffset])) continue;
 
             //Add each thread particle index and increment mNbParticles
-            //atomicExchange(voxels[_index].mAllParticles[voxels[_index].mNbParticles], i+_threadOffset);
-            atomicExchange(indicesParticlesVoxelsBuffer[_index*MAX_PARTICLES+voxels[_index].mNbParticles], i+_threadOffset);
-            atomicAdd(voxels[_index].mNbParticles,1);
+//            atomicExchange(indicesParticlesVoxelsBuffer[_index*MAX_PARTICLES+voxels[_index].mNbParticles], i+_threadOffset);
+//            atomicAdd(voxels[_index].mNbParticles,1);
+
+            atomicExchange(bufferPresenceParticleInVoxels[_index*MAX_PARTICLES+i+_threadOffset],1);
         }
+    }
+
+    barrier();
+    if(gl_LocalInvocationIndex != 0) return;
+
+    for(uint i = 0; i < MAX_PARTICLES; ++i)
+    {
+        if(bufferPresenceParticleInVoxels[_index*MAX_PARTICLES+i] != 1) continue;
+        atomicExchange(bufferPresenceParticleInVoxels[_index*MAX_PARTICLES+i], 0);
+        atomicExchange(indicesParticlesVoxelsBuffer[_index*MAX_PARTICLES+voxels[_index].mNbParticles], i);
+        atomicAdd(voxels[_index].mNbParticles,1);
     }
 
 //    for(uint i = 0; i < nbParticles; ++i)
@@ -262,7 +278,7 @@ bool IsCubeColliderInVoxel(const Voxel _voxel, const CubeCollider _collider)
     uint _indexThreadCorner = gl_LocalInvocationID.y%8;
 
     //Get axis and corner of the thread
-    vec3 _currentAxis = _axis[_indexThreadAxis];
+    vec3 _currentAxis = _indexThreadAxis == 0 ? GetXAxisCollision(_collider) : (_indexThreadAxis == 1 ? GetYAxisCollision(_collider) : GetZAxisCollision(_collider));//_axis[_indexThreadAxis];
     vec3 _vCorner = vec3(_voxel.corners[_indexThreadCorner*3], _voxel.corners[_indexThreadCorner*3+1], _voxel.corners[_indexThreadCorner*3+2]);
 
     //Project cubeCollider
@@ -366,7 +382,7 @@ void FillVoxelWithCubeColliders()
         atomicAdd(voxels[_index].mNbCubeCollider,1);
     }
 
-    //More particle than thread (multiple of threads)
+    //More voxels than thread (multiple of threads)
 //    else
 //    {
 //        //Get nb cubeColliders by thread available
@@ -404,5 +420,5 @@ void main()
 {
     CreateGrid();
     FillVoxelWithParticles();
-    FillVoxelWithCubeColliders();
+    //FillVoxelWithCubeColliders();
 }

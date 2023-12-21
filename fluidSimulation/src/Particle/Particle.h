@@ -13,7 +13,8 @@ struct ParticleComputableData
     float mVelocityX = 0, mVelocityY = 0, mVelocityZ = 0;
     float mDensity = 0;
     float mPressure = 0;
-    float mPressureForceX = 0, mPressureForceY = 0, mPressureForceZ = 0;
+//    float mPressureForceX = 0, mPressureForceY = 0, mPressureForceZ = 0;
+//    float mViscosityForceX = 0, mViscosityForceY = 0, mViscosityForceZ = 0;
 
     ParticleComputableData(){}
     ParticleComputableData(const QVector3D _position, const QVector3D& _velocity)

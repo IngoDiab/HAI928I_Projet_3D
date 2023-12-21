@@ -13,7 +13,9 @@ HEADERS += ./src/Mesh/Mesh.h \
     ./src/others/MyViewer.h \
     ./src/gl/GLUtilityMethods.h \
     ./src/gl/BasicColors.h \
+    src/Grid/MCGrid.h \
     src/Utils/Macros.h \
+    src/Utils/MarchingCube_Configurations.h \
     src/Utils/Singleton.h \
     src/Container/Container.h \
     src/Grid/Grid.h \
@@ -33,6 +35,7 @@ SOURCES += ./src/main.cpp \
     ./src/gl/BasicColors.cpp \
     src/Container/Container.cpp \
     src/Grid/Grid.cpp \
+    src/Grid/MCGrid.cpp \
     src/Mesh/Cube/Cube.cpp \
     src/Physics/Colliders/Cube/CubeCollider.cpp \
     src/Physics/PhysicManager/PhysicManager.cpp \

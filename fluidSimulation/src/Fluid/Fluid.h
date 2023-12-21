@@ -5,6 +5,9 @@
 #include "../Buffer/Buffer.h"
 #include "../ShaderProgram/ShaderProgram.h"
 #include "../Grid/Grid.h"
+#include "../Grid/MCGrid.h"
+
+#include "../Utils/Macros.h"
 
 class QGLViewer;
 class CubeCollider;
@@ -19,10 +22,12 @@ class Fluid
 
     //Physic
     int mFPSFluid = 120;
+    float mDeltaTimePhysics = 0;
     float mTimer = 0;
 
     //Display
     ShaderProgram* mFluidShader = nullptr;
+    MyMesh* mFluidMesh = nullptr;
     Particle* mParticleTemplateDisplay = nullptr;
     bool mDisplayParticles = true;
     QVector3D mCenter = QVector3D();
@@ -31,20 +36,30 @@ class Fluid
     ShaderProgram* mComputeShaderGravity = nullptr;
     ShaderProgram* mComputeShaderDensityPressure = nullptr;
     ShaderProgram* mComputeShaderGradient = nullptr;
+    ShaderProgram* mComputeShaderViscosity = nullptr;
     ShaderProgram* mComputeShaderVelocity = nullptr;
     ShaderProgram* mComputeShaderCollisions = nullptr;
     OGL_Buffer mParticlesBuffer = OGL_Buffer(QOpenGLBuffer::VertexBuffer);
 
     //Compute Grid
     Grid* mGrid = nullptr;
+    MCGrid* mMarchingCubeGrid = nullptr;
     ShaderProgram* mComputeShaderGrid = nullptr;
-    OGL_Buffer mVoxelsBuffer = OGL_Buffer(QOpenGLBuffer::VertexBuffer);
+    ShaderProgram* mComputeShaderMarchingCube = nullptr;
+    OGL_Buffer mGridBuffer = OGL_Buffer(QOpenGLBuffer::VertexBuffer);
+    OGL_Buffer mMarchingCubeGridBuffer = OGL_Buffer(QOpenGLBuffer::VertexBuffer);
     OGL_Buffer mVoxelsIndicesParticlesBuffer = OGL_Buffer(QOpenGLBuffer::VertexBuffer);
     OGL_Buffer mCollidersBuffer = OGL_Buffer(QOpenGLBuffer::VertexBuffer);
     OGL_Buffer mVoxelsIndicesCollidersBuffer = OGL_Buffer(QOpenGLBuffer::VertexBuffer);
 
+    //Only use as big arrays in computesShader
+    OGL_Buffer mBufferPresenceParticleInVoxels = OGL_Buffer(QOpenGLBuffer::VertexBuffer);
+    OGL_Buffer mMCTable = OGL_Buffer(QOpenGLBuffer::VertexBuffer);
+    OGL_Buffer mMCEdgeTable = OGL_Buffer(QOpenGLBuffer::VertexBuffer);
+
 public:
     const Grid* GetGrid() const {return mGrid;}
+    const MCGrid* GetMarchingCubeGrid() const {return mMarchingCubeGrid;}
 
 public:
     Fluid();
@@ -57,14 +72,17 @@ public:
     void Gravity();
     void Density_Pressure();
     void Gradient();
+    void Viscosity();
     void Velocity();
     void Collisions();
     void RefreshGrid();
+    void MarchingCube();
+    void MergeTriangles();
 
     //bool Detection(const QVector3D& _position, const CubeCollider& _collider);
     //float Resolution(ParticleComputableData& _particle, const CubeCollider& _collider);
+    void GenerateGrid();
     void Render(const GLfloat* _projectionMatrix, const GLfloat* _viewMatrix) const;
-    QVector3D Center() const {return QVector3D(0,0,0);} //CAN'T CENTER BECAUSE GRID IS NOT DISPLAYING WHERE IT SHOULD
 
 private:
     void ApplyForceOnCS();

@@ -33,7 +33,8 @@ class OGL_Buffer : protected QOpenGLExtraFunctions
        template <typename BufferData>
        bool ReadFromBuffer(int _offset, BufferData* _dataOut, int _nbBytes);
 
-       void DrawBuffer(const unsigned int _attribute, const int _size, const unsigned int _type, const unsigned char _normalized = 0, const int _stride = 0, const int _offsetBegin = 0);
+       void UseBuffer(const unsigned int _attribute, const int _size, const unsigned int _type, const unsigned char _normalized = 0, const int _stride = 0, const int _offsetBegin = 0);
+       void DrawBuffer(const GLenum _mode, const GLint _first, const GLsizei _count);
        void DrawBufferIndices(const unsigned int _mode, const int _size, const int _offsetBegin = 0);
 
        void BindBase(int _index);

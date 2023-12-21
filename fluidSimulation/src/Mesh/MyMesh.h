@@ -49,8 +49,6 @@ protected:
     QVector<unsigned int> mIndices = QVector<unsigned int>();
     OGL_Buffer mIndicesVBO = OGL_Buffer(QOpenGLBuffer::IndexBuffer);
 
-    QVector<Triangle> mTriangles;
-
 public:
     QVector<QVector3D> GetPositionsVertices() const {return mPositions;}
     QVector<QVector3D> GetNormalesVertices() const {return mNormales;}
@@ -60,7 +58,7 @@ public:
 public:
     MyMesh();
     virtual ~MyMesh();
-    MyMesh(const QVector<QVector3D>& _positions, /*const vector<vec2>& _uvs,*/ const QVector<unsigned int>& _indices, const QVector<Triangle>& _triangles);
+    MyMesh(const QVector<QVector3D>& _positions, /*const vector<vec2>& _uvs,*/ const QVector<QVector3D>& _normales, const QVector<unsigned int>& _indices);
 
 protected:
     void RefreshBufferData(const VERTEX_ATTRIBUTE _vbo);
@@ -72,6 +70,7 @@ protected:
     virtual void CreateVerticesNormales();
 
 public:
+    void RefreshMesh(const QVector<QVector3D>& _positions,  const QVector<QVector3D>& _normales, const QVector<unsigned int>& _indices);
     void DrawMesh();
 };
 #endif // MYMESH_H

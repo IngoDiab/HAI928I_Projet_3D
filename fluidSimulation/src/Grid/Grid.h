@@ -1,12 +1,8 @@
 #ifndef GRID_H
 #define GRID_H
 
-#include <vector>
-using namespace std;
-#include <QGLWidget>
+#include <QVector>
 #include <QVector3D>
-
-#include "../Utils/Macros.h"
 
 //      Y
 //      |
@@ -18,6 +14,16 @@ using namespace std;
 //  Z
 //      right-handed
 
+//            4             6
+//            +-------------+
+//          / |           / |
+//        /   |         /   |
+//    0 +-----+-------+  2  |
+//      |   5 +-------+-----+ 7
+//      |   /         |   /
+//      | /           | /
+//    1 +-------------+ 3
+
 class CubeCollider;
 
 struct Voxel
@@ -28,10 +34,7 @@ struct Voxel
 
     float mCorners[24] = { 0 };
 
-    //uint mAllParticles[MAX_PARTICLES_PER_VOXEL];
     uint mNbParticles = 0;
-
-    //uint mCubeCollider[MAX_CUBE_COLLIDERS_PER_VOXEL];
     uint mNbCubeCollider = 0;
 
     Voxel(){}
@@ -52,9 +55,9 @@ struct Voxel
 
 class Grid
 {
-    bool mDrawGrid = true;
-    uint mNbVoxelsPerSide = 5, mNbVoxels = 0;
-    float mOffset = .1;
+    bool mDrawGrid = false;
+    uint mNbVoxelsPerSide = 1, mNbVoxels = 0;
+    float mOffset = 1;
     float mStep[3] = {0,0,0};
     QVector3D mbb = QVector3D(), mBB = QVector3D();
     QVector<Voxel> mAllVoxels = QVector<Voxel>();
@@ -77,7 +80,7 @@ public:
     float Getbb(ushort _index) const {return mbb[_index];}
 
 public:
-    Grid();
+    Grid(uint _nbVoxelPerSide);
 
 public:
     void GenerateBoundingBoxGrid(const QVector3D& _bb, const QVector3D& _BB);

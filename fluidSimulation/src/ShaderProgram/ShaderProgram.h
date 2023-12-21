@@ -39,8 +39,12 @@ class ShaderProgram : protected QOpenGLExtraFunctions
 
     //Grid
     int mGridSizeLocation;
+    int mMCGridSizeLocation;
+    int mSeuilLocation;
     int mStepLocation[3];
+    int mStepMCLocation[3];
     int mbbLocation[3];
+    int mbbMCLocation[3];
 
 public:
     SHADER_TYPE GetType() const {return mType;}
@@ -50,8 +54,12 @@ public:
     int GetPressureParticleLocation() const {return mPressureParticleLocation;}
     int GetNbCubeCollidersLocation() const {return mNbCubeCollidersLocation;}
     int GetGridSizeLocation() const {return mGridSizeLocation;}
+    int GetMCGridSizeLocation() const {return mMCGridSizeLocation;}
+    int GetSeuilLocation() const {return mSeuilLocation;}
     int GetStepLocation(ushort _index) const {return mStepLocation[_index];}
+    int GetStepMCLocation(ushort _index) const {return mStepMCLocation[_index];}
     int GetbbLocation(ushort _index) const {return mbbLocation[_index];}
+    int GetbbMCLocation(ushort _index) const {return mbbMCLocation[_index];}
 
 public:
     ShaderProgram();

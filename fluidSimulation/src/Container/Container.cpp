@@ -28,5 +28,5 @@ void Container::Render(const GLfloat* _projectionMatrix, const GLfloat* _viewMat
     //Shader
     mContainerShader->UnbindProgram();
 
-    mCollider->Render();
+    //mCollider->Render();
 }

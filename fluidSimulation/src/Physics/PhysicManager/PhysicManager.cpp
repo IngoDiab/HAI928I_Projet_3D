@@ -9,8 +9,14 @@ PhysicManager::PhysicManager()
 QVector<CubeCollider> PhysicManager::GetCubeCollidersData() const
 {
     QVector<CubeCollider> _cubes = QVector<CubeCollider>();
+    uint i =0;
     for(CubeCollider* _collider : mCubePhysics)
+    {
+        if(i == 6) _collider->CalculateDeplacement();
+        //_collider->CalculateDeplacement();
         _cubes.push_back(*_collider);
+        ++i;
+    }
     return _cubes;
 }
 

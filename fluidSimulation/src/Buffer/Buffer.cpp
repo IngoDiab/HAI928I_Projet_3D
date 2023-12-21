@@ -38,12 +38,19 @@ void OGL_Buffer::BindBuffer()
 //    _functions.glBindBuffer(mBufferType, mBufferHandle);
 }
 
-void OGL_Buffer::DrawBuffer(const GLuint _attribute, const GLint _size, const GLenum _type, const GLboolean _normalized, const GLsizei _stride, const int _offsetBegin)
+void OGL_Buffer::UseBuffer(const GLuint _attribute, const GLint _size, const GLenum _type, const GLboolean _normalized, const GLsizei _stride, const int _offsetBegin)
 {
     QOpenGLExtraFunctions _functions = QOpenGLExtraFunctions(QOpenGLContext::currentContext());
     _functions.glEnableVertexAttribArray(_attribute);
     BindBuffer();
     _functions.glVertexAttribPointer(_attribute, _size, _type, _normalized, _stride, (void*)_offsetBegin);
+}
+
+void OGL_Buffer::DrawBuffer(const GLenum _mode, const GLint _first, const GLsizei _count)
+{
+    QOpenGLExtraFunctions _functions = QOpenGLExtraFunctions(QOpenGLContext::currentContext());
+    BindBuffer();
+    _functions.glDrawArrays(_mode, _first, _count);
 }
 
 void OGL_Buffer::DrawBufferIndices(const GLenum _mode, const GLsizei _size, const int _offsetBegin)

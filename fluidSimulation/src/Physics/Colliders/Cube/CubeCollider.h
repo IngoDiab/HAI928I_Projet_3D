@@ -10,10 +10,13 @@ class Transform;
 class CubeCollider
 {
     const Transform* mParent = nullptr;
+    float mVelocityX = 0, mVelocityY = 0, mVelocityZ = 0;
     float mCorners[24] = { 0 };
 
 public:
     const Transform* GetParentTransform() const {return mParent;}
+    QVector3D GetVelocity() const { return QVector3D(mVelocityX, mVelocityY, mVelocityZ);}
+    void ResetVelocity() { mVelocityX = 0, mVelocityY = 0, mVelocityZ = 0;}
     float* GetCorners() {return mCorners;}
 
     QVector3D GetCorner(uint _indexCorner) const {return QVector3D(mCorners[_indexCorner*3], mCorners[_indexCorner*3+1], mCorners[_indexCorner*3+2]);}
@@ -33,6 +36,7 @@ public:
 
 public:
     void RefreshColliderTransform();
+    void CalculateDeplacement();
     void DrawFace(const unsigned int& _index1, const unsigned int& _index2, const unsigned int& _index3) const;
     void Render() const;
 };

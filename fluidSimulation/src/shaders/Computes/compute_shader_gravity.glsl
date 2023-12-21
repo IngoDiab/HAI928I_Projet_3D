@@ -26,10 +26,6 @@ struct Particle
 
     float density;
     float pressure;
-
-    float pressureForceX;
-    float pressureForceY;
-    float pressureForceZ;
 };
 
 layout(std430, binding = 3) buffer ParticleBuffer
@@ -56,14 +52,19 @@ void ApplyGravityOnVelocity()
     particles[index].velocityY -= 9.8 * deltaTime;
 }
 
+void PredictPosition()
+{
+    uint index = GetParticleIndex();
+    Particle _particle = particles[index];
+    particles[index].predictedPositionX = _particle.positionX + _particle.velocityX * deltaTime;
+    particles[index].predictedPositionY = _particle.positionY + _particle.velocityY * deltaTime;
+    particles[index].predictedPositionZ = _particle.positionZ + _particle.velocityZ * deltaTime;
+}
+
 //////////////////////////////  MAIN //////////////////////////////
 
 void main()
 {
     ApplyGravityOnVelocity();
-
-    uint index = GetParticleIndex();
-    particles[index].predictedPositionX = particles[index].positionX + particles[index].velocityX * 1/120.f;
-    particles[index].predictedPositionY = particles[index].positionY + particles[index].velocityY * 1/120.f;
-    particles[index].predictedPositionZ = particles[index].positionZ + particles[index].velocityZ * 1/120.f;
+    PredictPosition();
 }

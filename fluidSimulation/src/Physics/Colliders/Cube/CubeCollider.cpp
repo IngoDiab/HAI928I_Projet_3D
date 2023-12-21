@@ -39,6 +39,20 @@ void CubeCollider::RefreshColliderTransform()
     }
 }
 
+void CubeCollider::CalculateDeplacement()
+{
+    QVector3D _previousPosition = mParent->GetWorldPreviousPosition();
+    QVector3D _currentPosition = mParent->GetWorldPosition();
+    if(_previousPosition != _currentPosition)
+    {
+        QVector3D _movement = _currentPosition - _previousPosition;
+        mVelocityX = _movement.x();
+        mVelocityY = _movement.y();
+        mVelocityZ = _movement.z();
+        mParent->RegisterPosition();
+    }
+}
+
 void CubeCollider::DrawFace(const unsigned int& _index1, const unsigned int& _index2, const unsigned int& _index3) const
 {
     glColor3f(0,0.9f,0);

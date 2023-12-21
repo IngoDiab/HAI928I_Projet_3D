@@ -14,10 +14,21 @@ MyMesh::~MyMesh()
 //    delete mIndicesVBO;
 }
 
-MyMesh::MyMesh(const QVector<QVector3D>& _positions, /*const vector<vec2>& _uvs,*/ const QVector<unsigned int>& _indices, const QVector<Triangle>& _triangles) : mPositions(_positions),/* mUVs(_uvs),*/ mIndices(_indices), mTriangles(_triangles)
+MyMesh::MyMesh(const QVector<QVector3D>& _positions, /*const vector<vec2>& _uvs,*/  const QVector<QVector3D>& _normales, const QVector<unsigned int>& _indices) : mPositions(_positions),/* mUVs(_uvs),*/ mNormales(_normales), mIndices(_indices)
 {
     RefreshBufferData(VERTEX_ATTRIBUTE::VERTEX_POSITION);
     //RefreshBufferData(VERTEX_ATTRIBUTE::VERTEX_UVS);
+    RefreshBufferData(VERTEX_ATTRIBUTE::VERTEX_NORMALE);
+    RefreshBufferData(VERTEX_ATTRIBUTE::VERTEX_INDICES);
+}
+
+void MyMesh::RefreshMesh(const QVector<QVector3D>& _positions,  const QVector<QVector3D>& _normales, const QVector<unsigned int>& _indices)
+{
+    mPositions = _positions;
+    mNormales = _normales;
+    mIndices = _indices;
+
+    RefreshBufferData(VERTEX_ATTRIBUTE::VERTEX_POSITION);
     RefreshBufferData(VERTEX_ATTRIBUTE::VERTEX_NORMALE);
     RefreshBufferData(VERTEX_ATTRIBUTE::VERTEX_INDICES);
 }
@@ -78,8 +89,13 @@ void MyMesh::CreateVerticesNormales()
 
 void MyMesh::DrawMesh()
 {
-    mPositionVBO.DrawBuffer(0, 3, GL_FLOAT);
-    //mUVsVBO.DrawBuffer(1, 2, GL_FLOAT);
-    mNormalVBO.DrawBuffer(1, 3, GL_FLOAT);
-    mIndicesVBO.DrawBufferIndices(GL_TRIANGLES, mIndices.size());
+    if(mPositions.size() == 0) return;
+    mPositionVBO.UseBuffer(0, 3, GL_FLOAT);
+    mNormalVBO.UseBuffer(1, 3, GL_FLOAT);
+    if(mIndices.size() != 0) mIndicesVBO.DrawBufferIndices(GL_TRIANGLES, mIndices.size());
+    else
+    {
+        mPositionVBO.BindBuffer();
+        mPositionVBO.DrawBuffer(GL_TRIANGLES, 0, mPositions.size());
+    }
 }

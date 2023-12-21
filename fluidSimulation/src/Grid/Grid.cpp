@@ -1,15 +1,18 @@
 #include "Grid.h"
 #include "QtDebug"
-#include "../Physics/Colliders/Cube/CubeCollider.h"
 #include <cmath>
+#include <QGLWidget>
+#include "../Physics/Colliders/Cube/CubeCollider.h"
+#include "../Utils/Macros.h"
 using namespace std;
 
-Grid::Grid()
+Grid::Grid(uint _nbVoxelPerSide)
 {
+    mNbVoxelsPerSide = _nbVoxelPerSide;
     mNbVoxels = mNbVoxelsPerSide*mNbVoxelsPerSide*mNbVoxelsPerSide;
     mAllVoxels.resize(mNbVoxels);
-    mAllVoxelsParticlesIndices.resize(mNbVoxels*MAX_PARTICLES_PER_VOXEL);
-    mAllVoxelsCubeCollidersIndices.resize(mNbVoxels*MAX_CUBE_COLLIDERS_PER_VOXEL);
+    mAllVoxelsParticlesIndices = QVector<uint>(mNbVoxels*MAX_PARTICLES_PER_VOXEL, 0);
+    mAllVoxelsCubeCollidersIndices = QVector<uint>(mNbVoxels*MAX_CUBE_COLLIDERS_PER_VOXEL, 0);
 }
 
 void Grid::GenerateBoundingBoxGrid(const QVector3D& _bb, const QVector3D& _BB)
@@ -17,7 +20,7 @@ void Grid::GenerateBoundingBoxGrid(const QVector3D& _bb, const QVector3D& _BB)
     mbb = _bb - QVector3D(mNbVoxelsPerSide*mOffset, mNbVoxelsPerSide*mOffset, mNbVoxelsPerSide*mOffset);
     mBB = _BB + QVector3D(mNbVoxelsPerSide*mOffset, mNbVoxelsPerSide*mOffset, mNbVoxelsPerSide*mOffset);
 
-    mStep[0] = (mBB.x() - mbb.x())/(float)mNbVoxelsPerSide;
+    mStep[0] = (mBB.x() - mbb.x())/(float)mNbVoxelsPerSide;    
     mStep[1] = (mBB.y() - mbb.y())/(float)mNbVoxelsPerSide;
     mStep[2] = (mBB.z() - mbb.z())/(float)mNbVoxelsPerSide;
 }
@@ -25,18 +28,18 @@ void Grid::GenerateBoundingBoxGrid(const QVector3D& _bb, const QVector3D& _BB)
 void Grid::DrawGrid() const
 {
     if(!mDrawGrid) return;
-    for(int i = 0; i < mAllVoxels.size(); ++i)
+    for(uint i = 0; i < mNbVoxels; ++i)
     {
         Voxel _voxel = mAllVoxels[i];
-        if(_voxel.mNbCubeCollider >= 1) continue;
+        if(_voxel.mNbParticles >= 1) continue;
         glColor3f(0,0,0);
         DisplayVoxel(_voxel.mCorners);
     }
 
-    for(int i = 0; i < mAllVoxels.size(); ++i)
+    for(uint i = 0; i < mNbVoxels; ++i)
     {
         Voxel _voxel = mAllVoxels[i];
-        if(_voxel.mNbCubeCollider < 1) continue;
+        if(_voxel.mNbParticles < 1) continue;
         glColor3f(1,0,0);
         DisplayVoxel(_voxel.mCorners);
     }
