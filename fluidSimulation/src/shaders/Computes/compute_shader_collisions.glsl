@@ -312,26 +312,21 @@ void Collisions(float _distance, Particle _currentParticle)
     {
         CollisionData _collisionData = Detection(cubeColliders[i], _currentParticle);
         if(!_collisionData.isColliding) continue;
-        _needCollision = true;
+
         particles[index].positionX += _collisionData.normale.x * _collisionData.distance;
         particles[index].positionY += _collisionData.normale.y * _collisionData.distance;
         particles[index].positionZ += _collisionData.normale.z * _collisionData.distance;
 
         vec3 _velocity = vec3(_currentParticle.velocityX, _currentParticle.velocityY, _currentParticle.velocityZ);
         vec3 _reflected = reflect(_velocity, _collisionData.normale);
-        particles[index].velocityX = _reflected.x*0.75f;
-        particles[index].velocityY = _reflected.y*0.75f;
-        particles[index].velocityZ = _reflected.z*0.75f;
+        particles[index].velocityX = _reflected.x*0.25f;
+        particles[index].velocityY = _reflected.y*0.25f;
+        particles[index].velocityZ = _reflected.z*0.25f;
 
         particles[index].velocityX += cubeColliders[i].mVelocityX;
         particles[index].velocityY += cubeColliders[i].mVelocityY;
         particles[index].velocityZ += cubeColliders[i].mVelocityZ;
     }
-
-//    if(!_needCollision) return;
-//    particles[index].velocityX = -particles[index].velocityX*0.98f;
-//    particles[index].velocityY = -particles[index].velocityY*0.98f;
-//    particles[index].velocityZ = -particles[index].velocityZ*0.98f;
 
 
     ///////////////////////////////////////////////////////////////////////////////////////

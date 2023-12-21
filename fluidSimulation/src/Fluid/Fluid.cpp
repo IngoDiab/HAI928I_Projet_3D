@@ -6,6 +6,7 @@
 
 #include "../Physics/Colliders/Cube/CubeCollider.h"
 #include "../Physics/PhysicManager/PhysicManager.h"
+#include "../Obstacle/Obstacle.h"
 
 #include "../Utils/MarchingCube_Configurations.h"
 
@@ -15,7 +16,6 @@ Fluid::Fluid()
 
     mGrid = new Grid(5);
     mMarchingCubeGrid = new MCGrid(15);
-    mMarchingCubeGrid->GenerateBoundingBoxGrid(QVector3D(-6.5f,0,-7), QVector3D(6.5f,13,7));
 
     mFluidMesh = new MyMesh();
     mParticleTemplateDisplay = new Particle();
@@ -72,11 +72,11 @@ void Fluid::Initialize()
 
     mParticlesBuffer.CopyDataToBuffer(mParticleComputableData);
 
-    GenerateGrid();
+    GenerateGrids(QVector<Obstacle*>());
     RefreshGrid();
 }
 
-void Fluid::UpdateFluid(float _deltaTime)
+void Fluid::UpdateFluid(float _deltaTime, QVector<Obstacle*> _containers)
 {
     mTimer+=_deltaTime;
     float _dtPhysic = 1.0f/(float)mFPSFluid;
@@ -91,146 +91,13 @@ void Fluid::UpdateFluid(float _deltaTime)
     Viscosity();
     Velocity();
     Collisions();
-    GenerateGrid();
+    GenerateGrids(_containers);
     RefreshGrid();
-    MarchingCube();
-    MergeTriangles();
+//    MarchingCube();
+//    MergeTriangles();
 }
 
-/*void Fluid::Collisions()
-{
-    QVector<CubeCollider*> _allObstacles = PhysicManager::Instance()->GetCubeColliders();
-    QVector<Voxel> _voxels = mGrid->GetAllVoxels();
-    for(ParticleComputableData& _particleData : mParticleComputableData)
-    {
-//        QVector3D _position = QVector3D(_particleData.mPositionX, _particleData.mPositionY, _particleData.mPositionZ);
-//        QVector<uint> _voxelsNear = mGrid->GetVoxelIndicesInRange(_position, 10);
-
-//        QVector<uint> _alreadyProcessedCollision = QVector<uint>();
-//        float _minT = numeric_limits<float>::max();
-//        bool _needCollision = false;
-//        for(uint _index : _voxelsNear)
-//        {
-//            //uint* _colliders = _voxels[_index].mCubeCollider;
-//            uint _nbCollidersIn = _voxels[_index].mNbCubeCollider;
-
-//            for(uint i = 0; i < _nbCollidersIn; ++i)
-//            {
-//                uint _indexCollider = mGrid->GetAllVoxelsCubeCollidersIndices()[_index*MAX_CUBE_COLLIDERS_PER_VOXEL+i];
-//                if(_alreadyProcessedCollision.contains(_indexCollider)) continue;
-//                _alreadyProcessedCollision.push_back(_indexCollider);
-//                bool _isColliding = Detection(_position, *_allObstacles[_indexCollider]);
-//                if(_isColliding)
-//                {
-//                    _needCollision = true;
-//                    _minT = min(_minT, Resolution(_particleData, *_allObstacles[_indexCollider]));
-//                }
-//            }
-//        }
-
-//        if(_needCollision){
-//        QVector3D _previousPos = QVector3D(_particleData.mPreviousPositionX, _particleData.mPreviousPositionY, _particleData.mPreviousPositionZ);
-//        QVector3D _currentPos = QVector3D(_particleData.mPositionX, _particleData.mPositionY, _particleData.mPositionZ);
-//        QVector3D _movementDir = (_currentPos - _previousPos).normalized();
-
-//        QVector3D _newPos = _previousPos + _minT * _movementDir;
-//        _particleData.mPositionX = _newPos.x();
-//        _particleData.mPositionY = _newPos.y();
-//        _particleData.mPositionZ = _newPos.z();
-
-//        _particleData.mVelocityY = -_particleData.mVelocityY/2;
-//        }
-        for(CubeCollider* _obstacle : _allObstacles)
-        {
-            QVector3D _position = QVector3D(_particleData.mPositionX, _particleData.mPositionY, _particleData.mPositionZ);
-            bool _isColliding = Detection(_position, *_obstacle);
-            if(_isColliding) Resolution(_particleData, *_obstacle);
-        }
-    }
-    mParticlesBuffer.CopyDataToBuffer(mParticleComputableData);
-}
-
-bool Fluid::Detection(const QVector3D& _position, const CubeCollider& _collider)
-{
-    //Get bb
-    QVector3D _colliderbb = _collider.Getbb();
-
-    //Get dimensions cube
-    float _sizeX = _collider.GetXAxisCollisionLength();
-    float _sizeY = _collider.GetYAxisCollisionLength();
-    float _sizeZ = _collider.GetZAxisCollisionLength();
-
-    //Get relatives axis cube
-    QVector3D _right = _collider.GetXAxisCollision();
-    QVector3D _up = _collider.GetYAxisCollision();
-    QVector3D _forward = _collider.GetZAxisCollision();
-
-    //Project particle on all axis
-    QVector3D _bbToProjOnRight = (QVector3D::dotProduct(_position - _colliderbb, _right) * _right);
-    QVector3D _bbToProjOnUp = (QVector3D::dotProduct(_position - _colliderbb, _up) * _up);
-    QVector3D _bbToProjOnForward = (QVector3D::dotProduct(_position - _colliderbb, _forward) * _forward );
-
-    //Get distance particle from bb and check if <= size
-    float _distanceX = _bbToProjOnRight.length();
-    float _distanceY = _bbToProjOnUp.length();
-    float _distanceZ = _bbToProjOnForward.length();
-    if(_distanceX > _sizeX || _distanceY > _sizeY || _distanceZ > _sizeZ) return false;
-
-    //Check same orientation
-    float _dotX = QVector3D::dotProduct(_bbToProjOnRight.normalized(), _right);
-    float _dotY = QVector3D::dotProduct(_bbToProjOnUp.normalized(), _up);
-    float _dotZ = QVector3D::dotProduct(_bbToProjOnForward.normalized(), _forward);
-    if(_dotX < 0 || _dotY < 0 || _dotZ < 0) return false;
-
-    //If same orientation and bb to projection <= size on dimension for EVERY axis
-    return true;
-}
-
-float Fluid::Resolution(ParticleComputableData& _particle, const CubeCollider& _collider)
-{
-    QVector3D _previousPos = QVector3D(_particle.mPreviousPositionX, _particle.mPreviousPositionY, _particle.mPreviousPositionZ);
-    QVector3D _currentPos = QVector3D(_particle.mPositionX, _particle.mPositionY, _particle.mPositionZ);
-    QVector3D _movementDir = (_currentPos - _previousPos).normalized();
-
-    //Get bb & BB
-    QVector<QVector3D> _corners = QVector<QVector3D>(2);
-    _corners[0] = _collider.Getbb();
-    _corners[1] = _collider.GetBB();
-
-    //Get relatives axis cube
-    QVector<QVector3D> _normales = QVector<QVector3D>(3);
-    _normales[0] = _collider.GetXAxisCollision();
-    _normales[1] = _collider.GetYAxisCollision();
-    _normales[2] = _collider.GetZAxisCollision();
-
-    float _minT = numeric_limits<float>::max();
-
-    for(ushort i = 0; i < 6; ++i)
-    {
-        QVector3D _corner = _corners[i/3];
-        QVector3D _normalPlane = (i<3 ? 1 : -1) * _normales[i%3];
-
-        //Check plan not parallel to velocity
-        float _dotVeloNormal = QVector3D::dotProduct(_movementDir, _normalPlane);
-        if((_dotVeloNormal <= 0.01f  && _dotVeloNormal >= -0.01f) || !isfinite(_dotVeloNormal)) continue;
-
-        float _t = QVector3D::dotProduct((_corner - _previousPos), _normalPlane) / QVector3D::dotProduct(_movementDir, _normalPlane);
-        if(_t < -0.01f) continue;
-
-        _minT = min(_minT, _t);
-    }
-
-    //return _minT;
-
-    QVector3D _newPos = _previousPos + _minT * _movementDir;
-    _particle.mPositionX = _newPos.x();
-    _particle.mPositionY = _newPos.y();
-    _particle.mPositionZ = _newPos.z();
-
-    _particle.mVelocityY = -_particle.mVelocityY/2;
-}*/
-
-void Fluid::Render(const GLfloat* _projectionMatrix, const GLfloat* _viewMatrix) const
+void Fluid::Render(const QVector3D& _cameraPosition, const GLfloat* _projectionMatrix, const GLfloat* _viewMatrix) const
 {
     if (!mDisplayParticles || !mParticleTemplateDisplay) return;
 
@@ -239,29 +106,30 @@ void Fluid::Render(const GLfloat* _projectionMatrix, const GLfloat* _viewMatrix)
 
     QOpenGLExtraFunctions _functions = QOpenGLExtraFunctions(QOpenGLContext::currentContext());
 
+    //Send camera position
+    float _cameraPositionFloats[3] = {_cameraPosition.x(), _cameraPosition.y(), _cameraPosition.z()};
+    _functions.glUniform3fv(mFluidShader->GetCameraPositionLocation(), 1, _cameraPositionFloats);
+
     //View Projection matrix
     mFluidShader->SendVP(_viewMatrix, _projectionMatrix);
-//    for(int i = 0; i < mParticleComputableData.size(); ++i)
-//    {
-//        //if(i%100 !=0) continue;
-//        const ParticleComputableData& _particleData = mParticleComputableData[i];
-//        mParticleTemplateDisplay->GetTransform().SetWorldPosition(QVector3D(_particleData.mPositionX, _particleData.mPositionY, _particleData.mPositionZ));
-//        mParticleTemplateDisplay->SetVelocity(QVector3D(_particleData.mVelocityX, _particleData.mVelocityY, _particleData.mVelocityZ));
+    for(int i = 0; i < mParticleComputableData.size(); ++i)
+    {
+        //if(i%100 !=0) continue;
+        const ParticleComputableData& _particleData = mParticleComputableData[i];
+        mParticleTemplateDisplay->GetTransform().SetWorldPosition(QVector3D(_particleData.mPositionX, _particleData.mPositionY, _particleData.mPositionZ));
+        mParticleTemplateDisplay->SetVelocity(QVector3D(_particleData.mVelocityX, _particleData.mVelocityY, _particleData.mVelocityZ));
 
-//        _functions.glUniform1f(mFluidShader->GetDensityParticleLocation(), mParticleComputableData[i].mDensity);
-//        _functions.glUniform1f(mFluidShader->GetPressureParticleLocation(), mParticleComputableData[i].mPressure);
+        //Model matrix
+        GLfloat* _modelMatrixF = mParticleTemplateDisplay->GetTransform().GetModelMatrix().data();
+        mFluidShader->SendM(_modelMatrixF);
 
-//        //Model matrix
-//        GLfloat* _modelMatrixF = mParticleTemplateDisplay->GetTransform().GetModelMatrix().data();
-//        mFluidShader->SendM(_modelMatrixF);
+        //Draw
+        MyMesh* _mesh = mParticleTemplateDisplay->GetMesh();
+        if(!_mesh) return;
+        _mesh->DrawMesh();
+    }
 
-//        //Draw
-//        MyMesh* _mesh = mParticleTemplateDisplay->GetMesh();
-//        if(!_mesh) return;
-//        _mesh->DrawMesh();
-//    }
-
-    mFluidMesh->DrawMesh();
+    //mFluidMesh->DrawMesh();
 
     //Shader
     mFluidShader->UnbindProgram();
@@ -336,10 +204,6 @@ void Fluid::Gradient()
     mGridBuffer.BindBase(0);
     mVoxelsIndicesParticlesBuffer.BindBase(1);
     mParticlesBuffer.BindBase(3);
-
-//    QVector<ParticleComputableData> _pa = QVector<ParticleComputableData>(10240);
-//    mParticlesBuffer.ReadFromBuffer(0, &_pa[0], 10240*sizeof(ParticleComputableData));
-//    qDebug() << "Pre Gradient Y" << _pa[0].mPositionY;
 
     //Dispatch
     mComputeShaderGradient->ProcessComputeShader(NB_PARTICLES,1,1);
@@ -433,7 +297,7 @@ void Fluid::Collisions()
     mComputeShaderCollisions->UnbindProgram();
 }
 
-void Fluid::GenerateGrid()
+void Fluid::GenerateGrids(const QVector<Obstacle*>& _containers)
 {
     float _bbX = numeric_limits<float>::max(), _bbY = numeric_limits<float>::max(), _bbZ = numeric_limits<float>::max();
     float _BBX = numeric_limits<float>::lowest(), _BBY = numeric_limits<float>::lowest(), _BBZ = numeric_limits<float>::lowest();
@@ -452,9 +316,32 @@ void Fluid::GenerateGrid()
 
     QVector3D _bb = QVector3D(_bbX, _bbY, _bbZ);
     QVector3D _BB = QVector3D(_BBX, _BBY, _BBZ);
-
     mGrid->GenerateBoundingBoxGrid(_bb, _BB);
-    //mMarchingCubeGrid->GenerateBoundingBoxGrid(_bb, _BB);
+
+
+    _bbX = numeric_limits<float>::max(), _bbY = numeric_limits<float>::max(), _bbZ = numeric_limits<float>::max();
+    _BBX = numeric_limits<float>::lowest(), _BBY = numeric_limits<float>::lowest(), _BBZ = numeric_limits<float>::lowest();
+
+    for(const Obstacle* _obstacle : _containers)
+    {
+        CubeCollider* _collider = _obstacle->GetCollider();
+        for(uint i = 0; i < 8; ++i)
+        {
+            QVector3D _cornerPos = _collider->GetCorner(i);
+            _bbX = min(_bbX, _cornerPos.x());
+            _BBX = max(_BBX, _cornerPos.x());
+
+            _bbY = min(_bbY, _cornerPos.y());
+            _BBY = max(_BBY, _cornerPos.y());
+
+            _bbZ = min(_bbZ, _cornerPos.z());
+            _BBZ = max(_BBZ, _cornerPos.z());
+        }
+    }
+
+    _bb = QVector3D(_bbX, _bbY, _bbZ);
+    _BB = QVector3D(_BBX, _BBY, _BBZ);
+    mMarchingCubeGrid->GenerateBoundingBoxGrid(_bb, _BB);
 }
 
 void Fluid::RefreshGrid()
@@ -538,23 +425,57 @@ void Fluid::MarchingCube()
     mComputeShaderMarchingCube->UnbindProgram();
 }
 
+int Fluid::SearchVertex(const QVector<QVector3D>& _vertices, const QVector3D& _position)
+{
+    for(int _vertexIndex = 0; _vertexIndex < _vertices.size(); ++_vertexIndex)
+        if((_vertices[_vertexIndex] - _position).length() <= 0.001f) return _vertexIndex;
+    return -1;
+}
+
 void Fluid::MergeTriangles()
 {
-    QVector<QVector3D> _positions = QVector<QVector3D>();
-
     QVector<MCVoxel> _voxels = mMarchingCubeGrid->GetAllVoxels();
+
+    QVector<QVector3D> _vertices = QVector<QVector3D>();
+    QVector<QVector3D> _normales = QVector<QVector3D>();
+    QVector<uint> _nbNormalesAdded = QVector<uint>();
+    QVector<uint> _indices = QVector<uint>();
+
     for(const MCVoxel& _voxel : _voxels)
     {
         uint _nbTriangleInVoxel = _voxel.mNbTriangles;
         for(uint _triangleIndex = 0; _triangleIndex < _nbTriangleInVoxel; ++_triangleIndex)
+        {
+            QVector<QVector3D> _triangle = QVector<QVector3D>(3, QVector3D());
+            QVector3D _normaleTriangle = QVector3D(_voxel.mTrianglesNormales[_triangleIndex*3], _voxel.mTrianglesNormales[_triangleIndex*3 +1], _voxel.mTrianglesNormales[_triangleIndex*3 +2]);
             for(uint _vertexIndex = 0; _vertexIndex < 3; ++_vertexIndex)
             {
                 QVector3D _vertex = QVector3D(_voxel.mTrianglesPos[_triangleIndex*9 + _vertexIndex*3], _voxel.mTrianglesPos[_triangleIndex*9 + _vertexIndex*3 +1] , _voxel.mTrianglesPos[_triangleIndex*9 + _vertexIndex*3 +2]);
-                _positions.push_back(_vertex);
+                int _indexInVertices = SearchVertex(_vertices, _vertex);
+                if(_indexInVertices != -1)
+                {
+                    _indices.push_back(_indexInVertices);
+                    _normales[_indexInVertices] += _normaleTriangle;
+                    ++(_nbNormalesAdded[_indexInVertices]);
+                }
+                else
+                {
+                    uint _newIndex = _vertices.size();
+                    _vertices.push_back(_vertex);
+                    _indices.push_back(_newIndex);
+                    _normales.push_back(_normaleTriangle);
+                    _nbNormalesAdded.push_back(1);
+                }
+                _triangle[_vertexIndex] = _vertex;
             }
+        }
     }
-    QVector<QVector3D> _normales = QVector<QVector3D>(_positions.size(), QVector3D(0,1,0));
-    mFluidMesh->RefreshMesh(_positions, _normales, QVector<uint>());
+
+    for(uint _indexNormale = 0; _indexNormale < _normales.size(); ++_indexNormale)
+        _normales[_indexNormale] /= (float)_nbNormalesAdded[_indexNormale];
+
+//    QVector<QVector3D> _normales = QVector<QVector3D>(_positions.size(), QVector3D(0,1,0));
+    mFluidMesh->RefreshMesh(_vertices, _normales, _indices);
 }
 
 void Fluid::LoadShader()

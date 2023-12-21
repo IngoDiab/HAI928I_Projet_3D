@@ -11,6 +11,7 @@
 
 class QGLViewer;
 class CubeCollider;
+class Obstacle;
 
 class Fluid
 {
@@ -67,7 +68,7 @@ public:
 
 public:
     void Initialize();
-    void UpdateFluid(float _deltaTime);
+    void UpdateFluid(float _deltaTime, QVector<Obstacle*> _containers);
 
     void Gravity();
     void Density_Pressure();
@@ -77,12 +78,13 @@ public:
     void Collisions();
     void RefreshGrid();
     void MarchingCube();
+    int SearchVertex(const QVector<QVector3D>& _vertices, const QVector3D& _position);
     void MergeTriangles();
 
     //bool Detection(const QVector3D& _position, const CubeCollider& _collider);
     //float Resolution(ParticleComputableData& _particle, const CubeCollider& _collider);
-    void GenerateGrid();
-    void Render(const GLfloat* _projectionMatrix, const GLfloat* _viewMatrix) const;
+    void GenerateGrids(const QVector<Obstacle*>& _containers);
+    void Render(const QVector3D& _cameraPosition, const GLfloat* _projectionMatrix, const GLfloat* _viewMatrix) const;
 
 private:
     void ApplyForceOnCS();

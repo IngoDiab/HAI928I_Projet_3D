@@ -238,6 +238,7 @@ void PressureForce()
                     vec3 _dir = _distanceTwoParticles == 0 ?  RandomDir() : normalize(_otherParticlePosition-_position);
                     float _slope = SmoothKernelDerivative(_distanceTwoParticles);
                     float _sharedPressure = (_currentPressure + _otherPressure)/2.f;
+                    _otherDensity = _otherDensity == 0 ? 3 :_otherDensity;
                     _pressureForce += _sharedPressure * _dir * _slope / _otherDensity;
                 }
 
@@ -256,6 +257,7 @@ void PressureForce()
                     vec3 _dir = _distanceTwoParticles == 0 ?  RandomDir() : normalize(_otherParticlePosition-_position);
                     float _slope = SmoothKernelDerivative(_distanceTwoParticles);
                     float _sharedPressure = (_currentPressure + _otherPressure)/2.f;
+                    _otherDensity = _otherDensity == 0 ? 3 :_otherDensity;
                     _pressureForce += _sharedPressure * _dir * _slope / _otherDensity;
                 }
             }
@@ -275,6 +277,7 @@ void PressureForce()
         _pressureForceZ += pressureForces[i].z;
     }
 
+    _currentDensity = _currentDensity == 0 ? 3 :_currentDensity;
     particles[index].velocityX += (_pressureForceX / _currentDensity) * deltaTime;
     particles[index].velocityY += (_pressureForceY / _currentDensity) * deltaTime;
     particles[index].velocityZ += (_pressureForceZ / _currentDensity) * deltaTime;

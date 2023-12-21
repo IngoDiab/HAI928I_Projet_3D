@@ -39,7 +39,7 @@ using namespace std;
 #include <pthread.h>
 
 #include "../Fluid/Fluid.h"
-#include "../Container/Container.h"
+#include "../Obstacle/Obstacle.h"
 #include "../Physics//Colliders/Cube/CubeCollider.h"
 #include "../Physics/PhysicManager/PhysicManager.h"
 #include "../Utils/Macros.h"
@@ -57,8 +57,8 @@ class MyViewer : public QGLViewer, protected QOpenGLExtraFunctions
     //Obstacles
     PhysicManager mPhysicManager;
     QVector3D mContainerPos = QVector3D();
-    QVector<Container*> mContainers = QVector<Container*>(NB_CUBE_COLLIDERS, nullptr);
-    Container* mObject = nullptr;
+    QVector<Obstacle*> mContainers = QVector<Obstacle*>(6, nullptr);
+    Obstacle* mObject = nullptr;
 
     //Fluid
     Fluid* mFluid = nullptr;
@@ -127,7 +127,6 @@ public :
         _viewMatrix.lookAt(_cameraPosition, QVector3D(0,0,0), _cameraUp);
         GLfloat* _viewMatrixF = _viewMatrix.data();
 
-        if(!mPause) mFluid->UpdateFluid(mDeltaTime);
         mContainers[0]->GetTransform().SetWorldPosition(mContainers[0]->GetTransform().GetWorldPosition()+mContainerPos);
         mContainers[0]->GetCollider()->RefreshColliderTransform();
         mContainers[1]->GetTransform().SetWorldPosition(mContainers[1]->GetTransform().GetWorldPosition()+mContainerPos);
@@ -140,6 +139,7 @@ public :
         mContainers[4]->GetCollider()->RefreshColliderTransform();
         mContainers[5]->GetTransform().SetWorldPosition(mContainers[5]->GetTransform().GetWorldPosition()+mContainerPos);
         mContainers[5]->GetCollider()->RefreshColliderTransform();
+        if(!mPause) mFluid->UpdateFluid(mDeltaTime, mContainers);
         mContainerPos = QVector3D(0,0,0);
 
         mFluid->GetGrid()->DrawGrid();
@@ -149,12 +149,12 @@ public :
         mContainers[1]->Render(_projectionMatrixF, _viewMatrixF);
         mContainers[5]->Render(_projectionMatrixF, _viewMatrixF);
 
-        mContainers[6]->Render(_projectionMatrixF, _viewMatrixF);
+        mObject->Render(_projectionMatrixF, _viewMatrixF);
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        mFluid->Render(_projectionMatrixF, _viewMatrixF);
+        mFluid->Render(_cameraPosition, _projectionMatrixF, _viewMatrixF);
 
         mContainers[3]->Render(_projectionMatrixF, _viewMatrixF);
         mContainers[4]->Render(_projectionMatrixF, _viewMatrixF);
@@ -224,7 +224,7 @@ public :
 
         //Container
         for(uint i = 0; i < mContainers.size(); ++i)
-            mContainers[i] = new Container();
+            mContainers[i] = new Obstacle();
 
         mContainers[0]->GetTransform().SetWorldPosition(QVector3D(0,0,0));
         mContainers[0]->GetTransform().SetWorldScale(QVector3D(15,1,15));
@@ -254,10 +254,10 @@ public :
         mContainers[5]->GetTransform().SetWorldScale(QVector3D(15,1,15));
         mContainers[5]->GetCollider()->RefreshColliderTransform();
 
-        //mObject = new Container();
-        mContainers[6]->GetTransform().SetWorldPosition(QVector3D(0,-30,0));
-        mContainers[6]->GetTransform().SetWorldScale(QVector3D(5,5,5));
-        mContainers[6]->GetCollider()->RefreshColliderTransform();
+        mObject = new Obstacle();
+        mObject->GetTransform().SetWorldPosition(QVector3D(0,-15,0));
+        mObject->GetTransform().SetWorldScale(QVector3D(5,15,5));
+        mObject->GetCollider()->RefreshColliderTransform();
         ///
 
         mFluid->Initialize();
@@ -303,23 +303,27 @@ public :
         else if( event->key() == Qt::Key_Space ) {
             mPause = !mPause;
         }
-        else if( event->key() == Qt::Key_Right ) {
+        else if( event->key() == Qt::Key_D ) {
             mContainerPos += 1/120.f*10*QVector3D(1,0,0);
-//            mContainers[6]->GetTransform().SetWorldPosition(mContainers[6]->GetTransform().GetWorldPosition()+1/120.f*10*QVector3D(1,0,0));
-//            mContainers[6]->GetCollider()->RefreshColliderTransform();
+        }
+        else if( event->key() == Qt::Key_Q ) {
+            mContainerPos += 1/120.f*10*QVector3D(-1,0,0);
+        }
+        else if( event->key() == Qt::Key_Right ) {
+            mObject->GetTransform().SetWorldPosition(mObject->GetTransform().GetWorldPosition()+1/120.f*30*QVector3D(1,0,0));
+            mObject->GetCollider()->RefreshColliderTransform();
         }
         else if( event->key() == Qt::Key_Left ) {
-            mContainerPos += 1/120.f*10*QVector3D(-1,0,0);
-//            mContainers[6]->GetTransform().SetWorldPosition(mContainers[6]->GetTransform().GetWorldPosition()+1/120.f*10*QVector3D(-1,0,0));
-//            mContainers[6]->GetCollider()->RefreshColliderTransform();
+            mObject->GetTransform().SetWorldPosition(mObject->GetTransform().GetWorldPosition()+1/120.f*30*QVector3D(-1,0,0));
+            mObject->GetCollider()->RefreshColliderTransform();
         }
         else if( event->key() == Qt::Key_Down ) {
-            mContainers[6]->GetTransform().SetWorldPosition(mContainers[6]->GetTransform().GetWorldPosition()+1/120.f*20*QVector3D(0,-1,0));
-            mContainers[6]->GetCollider()->RefreshColliderTransform();
+            mObject->GetTransform().SetWorldPosition(mObject->GetTransform().GetWorldPosition()+1/120.f*30*QVector3D(0,-1,0));
+            mObject->GetCollider()->RefreshColliderTransform();
         }
         else if( event->key() == Qt::Key_Up ) {
-            mContainers[6]->GetTransform().SetWorldPosition(mContainers[6]->GetTransform().GetWorldPosition()+1/120.f*20*QVector3D(0,1,0));
-            mContainers[6]->GetCollider()->RefreshColliderTransform();
+            mObject->GetTransform().SetWorldPosition(mObject->GetTransform().GetWorldPosition()+1/120.f*30*QVector3D(0,1,0));
+            mObject->GetCollider()->RefreshColliderTransform();
         }
         else if( event->key() == Qt::Key_T ) {
             if( event->modifiers() & Qt::CTRL )

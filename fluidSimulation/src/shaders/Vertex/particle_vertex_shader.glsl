@@ -7,13 +7,14 @@ uniform mat4 model_matrix = mat4(1.0f);
 uniform mat4 view_matrix;
 uniform mat4 projection_matrix;
 
-//out vec3 normale;
+out vec3 o_normale;
+out vec3 o_positionWorld;
 
 void main()
 {
-    gl_Position =  projection_matrix * view_matrix * model_matrix * vec4(vertexPosition,1);
-
-//    vec4 normaleV4 = normalize(transpose(inverse(model_matrix)) * vec4(vertexNormal, 1.0));
-//    normale = vertexPosition.xyz;
+    vec4 o_positionWorldV4 = model_matrix * vec4(vertexPosition,1);
+    o_positionWorld = o_positionWorldV4.xyz;
+    gl_Position =  projection_matrix * view_matrix * o_positionWorldV4;
+    o_normale = vertexNormal;
 }
 

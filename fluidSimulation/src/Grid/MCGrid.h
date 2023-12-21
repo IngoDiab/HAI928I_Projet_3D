@@ -52,13 +52,13 @@ struct MCVoxel
 
 class MCGrid
 {
-    bool mDrawGrid = true;
+    bool mDrawGrid = false;
     uint mNbVoxelsPerSide = 1, mNbVoxels = 0;
-    float mOffset = 1;//.09f;
+    float mOffset = 0;//.09f;
     float mStep[3] = {0,0,0};
     QVector3D mbb = QVector3D(), mBB = QVector3D();
     QVector<MCVoxel> mAllVoxels = QVector<MCVoxel>();
-    float mSeuil = 1;
+    float mSeuil = 2;
 
 public:
     QVector<MCVoxel> const & GetAllVoxels() const {return mAllVoxels;}

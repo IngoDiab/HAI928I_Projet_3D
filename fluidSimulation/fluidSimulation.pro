@@ -17,7 +17,7 @@ HEADERS += ./src/Mesh/Mesh.h \
     src/Utils/Macros.h \
     src/Utils/MarchingCube_Configurations.h \
     src/Utils/Singleton.h \
-    src/Container/Container.h \
+    src/Obstacle/Obstacle.h \
     src/Grid/Grid.h \
     src/Mesh/Cube/Cube.h \
     src/Physics/Colliders/Cube/CubeCollider.h \
@@ -33,7 +33,7 @@ HEADERS += ./src/Mesh/Mesh.h \
 SOURCES += ./src/main.cpp \
     ./src/gl/GLUtilityMethods.cpp\
     ./src/gl/BasicColors.cpp \
-    src/Container/Container.cpp \
+    src/Obstacle/Obstacle.cpp \
     src/Grid/Grid.cpp \
     src/Grid/MCGrid.cpp \
     src/Mesh/Cube/Cube.cpp \

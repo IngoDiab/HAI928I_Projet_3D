@@ -4,6 +4,8 @@
 
 layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
+const float MAX_VELOCITY = 0.25f;
+
 //////////////////////////////  PARTICLES //////////////////////////////
 
 struct Particle
@@ -56,10 +58,14 @@ void ApplyVelocityOnPosition()
     particles[index].previousPositionY = _particle.positionY;
     particles[index].previousPositionZ = _particle.positionZ;
 
+    vec3 _velocity = vec3(_particle.velocityX, _particle.velocityY, _particle.velocityZ) * deltaTime;
+    float _velocityLength = length(_velocity);
+    if(_velocityLength > MAX_VELOCITY) _velocity = normalize(_velocity)*MAX_VELOCITY;
+
     //Apply velocity
-    particles[index].positionX += _particle.velocityX * deltaTime;
-    particles[index].positionY += _particle.velocityY * deltaTime;
-    particles[index].positionZ += _particle.velocityZ * deltaTime;
+    particles[index].positionX += _velocity.x;
+    particles[index].positionY += _velocity.y;
+    particles[index].positionZ += _velocity.z;
 }
 
 //////////////////////////////  MAIN //////////////////////////////

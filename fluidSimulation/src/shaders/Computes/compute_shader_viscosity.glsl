@@ -12,7 +12,7 @@ const float SMOOTHING_RADIUS = .9f;
 const float SMOOTHING_RADIUS_P4 = SMOOTHING_RADIUS*SMOOTHING_RADIUS*SMOOTHING_RADIUS*SMOOTHING_RADIUS;
 const float VOLUME = (M_PI * SMOOTHING_RADIUS_P4) / 6;
 
-const float VISCOSITY_STRENGTH = .7f;
+const float VISCOSITY_STRENGTH = 1.25f;
 //////////////////////////////  VOXELS //////////////////////////////
 struct Voxel
 {

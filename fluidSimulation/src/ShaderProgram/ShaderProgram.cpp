@@ -20,8 +20,7 @@ ShaderProgram::ShaderProgram(const QString& _vPath, const QString& _fPath)
     GetLocation(mModelMatrixLocation, "model_matrix");
     GetLocation(mViewMatrixLocation, "view_matrix");
     GetLocation(mProjectionMatrixLocation, "projection_matrix");
-    GetLocation(mDensityParticleLocation, "density");
-    GetLocation(mPressureParticleLocation, "pressure");
+    GetLocation(mCameraPositionLocation, "cameraPosition");
 }
 
 ShaderProgram::ShaderProgram(const QString& _cPath)

@@ -10,7 +10,7 @@ const float M_PI = 3.14159265358979323846;
 
 const uint NB_THREADS_IN_GROUP = gl_WorkGroupSize.x * gl_WorkGroupSize.y * gl_WorkGroupSize.z;
 
-const float SMOOTHING_RADIUS = 1.5f;
+const float SMOOTHING_RADIUS = 1.25f;
 const float SMOOTHING_RADIUS_P4 = SMOOTHING_RADIUS*SMOOTHING_RADIUS*SMOOTHING_RADIUS*SMOOTHING_RADIUS;
 const float VOLUME = (M_PI * SMOOTHING_RADIUS_P4) / 6;
 //////////////////////////////  VOXELS //////////////////////////////
@@ -361,7 +361,7 @@ void CreateTriangles()
             else if(_vertexIndex==2) _vertex2 = _currentVertex;
         }
 
-        vec3 _normale = cross(normalize(_vertex1-_vertex0), normalize(_vertex2-_vertex0));
+        vec3 _normale = cross(normalize(_vertex2-_vertex0), normalize(_vertex1-_vertex0));
         marchingCube_grid[_index].trianglesNormales[_nbTrianglesInVoxel*3] = _normale.x;
         marchingCube_grid[_index].trianglesNormales[_nbTrianglesInVoxel*3 +1] = _normale.y;
         marchingCube_grid[_index].trianglesNormales[_nbTrianglesInVoxel*3 +2] = _normale.z;

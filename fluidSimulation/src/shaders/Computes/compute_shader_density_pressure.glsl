@@ -14,8 +14,8 @@ const float SMOOTHING_RADIUS = .6f;
 const float SMOOTHING_RADIUS_P4 = SMOOTHING_RADIUS*SMOOTHING_RADIUS*SMOOTHING_RADIUS*SMOOTHING_RADIUS;
 const float VOLUME = (M_PI * SMOOTHING_RADIUS_P4) / 6;
 
-const float TARGETED_DENSITY = 7.5;
-const float PRESSURE_MULTIPLIER = 100;
+const float TARGETED_DENSITY = 7;
+const float PRESSURE_MULTIPLIER = 150;
 //////////////////////////////  VOXELS //////////////////////////////
 struct Voxel
 {
